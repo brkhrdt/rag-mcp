@@ -12,3 +12,5 @@ The MCP provides the following functions:
 ## RAG Implementation Details
 
 The RAG system is built using the `transformers` Python library. Data is stored and managed using `pandas`, specifically saving embeddings mapped to text chunks in a Parquet file.
+
+Text chunking for embedding is performed by splitting the input text into chunks that fit within the maximum token limit of the chosen embedding model. A default embedding model (to be determined) will be used. To maintain context across chunks, a configurable overlap is applied. For example, a 30% overlap means the tail 30% of the previous chunk will be the leading 30% of the current chunk. This overlapping strategy helps ensure that important information is not lost at chunk boundaries.
