@@ -11,7 +11,7 @@ The core idea of this project is to combine a powerful language model with a ret
 We will build a modular RAG system with clear separation of concerns:
 
 1.  **Data Ingestion & Preprocessing (`ingest`):**
-    *   Handles various document types (PDF, TXT, DOCX, etc.).
+    *   Handles various document types (currently plain text, with PDF, DOCX, etc., as future improvements).
     *   Robust text extraction.
     *   Intelligent text chunking.
     *   Embedding generation.
@@ -32,7 +32,7 @@ Let's break down the implementation into key components and how they interact.
 
 *   **`DocumentProcessor`**:
     *   **Responsibility**: Extracting raw text from various file types.
-    *   **Implementation**: Use libraries like `pypdf`, `python-docx`, etc.
+    *   **Implementation**: Initially, this will focus on plain text files. Support for other formats like `pypdf`, `python-docx`, etc., will be future enhancements.
 *   **`TextChunker`**:
     *   **Responsibility**: Splitting raw text into manageable, overlapping chunks suitable for embedding models.
     *   **Implementation**:
@@ -64,7 +64,7 @@ Let's break down the implementation into key components and how they interact.
 
 *   **`transformers`**: For loading and using pre-trained models (embedding and LLM).
 *   **`sentence-transformers`**: (Optional, but highly recommended) Simplifies using transformer models for embeddings.
-*   **`pypdf`, `python-docx`, `openpyxl`**: For document parsing.
+*   **`pypdf`, `python-docx`, `openpyxl`**: (Future enhancements) For document parsing.
 *   **`chromadb`**: For the vector store (local, easy to set up).
 *   **`tiktoken` / `transformers` tokenizers**: For accurate token counting for chunking.
 *   **`pathlib`**: For robust file path handling.
@@ -74,7 +74,7 @@ Let's break down the implementation into key components and how they interact.
 #### 4. Class and Function Descriptions
 
 *   **`DocumentProcessor` Class**:
-    *   **Purpose**: Responsible for extracting raw text content from various document formats (e.g., PDF, DOCX).
+    *   **Purpose**: Responsible for extracting raw text content from various document formats. Initially, this will support plain text files.
     *   **Key Functions**:
         *   `extract_text(file_path: str) -> str`: Takes a file path and returns the extracted plain text content.
 
