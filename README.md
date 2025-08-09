@@ -40,10 +40,11 @@ Let's break down the implementation into key components and how they interact.
         *   Implement a sliding window approach for overlap.
         *   Consider strategies to preserve semantic boundaries (e.g., splitting by paragraphs/sentences first).
 *   **`EmbeddingModel`**:
-    *   **Responsibility**: Converting text chunks and queries into numerical vector embeddings.
+    *   **Responsibility**: Converting text chunks and queries into numerical vector embeddings, with support for GPU acceleration.
     *   **Implementation**:
         *   Wrap a `transformers` model (e.g., `SentenceTransformer` from `sentence-transformers` library for ease of use, or directly `AutoModel` and `AutoTokenizer`).
         *   Provide methods for batch embedding.
+        *   Ensure the model can leverage available GPUs for faster processing.
 *   **`VectorStore`**:
     *   **Responsibility**: Storing text chunks and their corresponding embeddings, and performing efficient similarity searches.
     *   **Implementation**:
@@ -68,6 +69,7 @@ Let's break down the implementation into key components and how they interact.
 *   **`chromadb`**: For the vector store (local, easy to set up).
 *   **`tiktoken` / `transformers` tokenizers**: For accurate token counting for chunking.
 *   **`pathlib`**: For robust file path handling.
+*   **`torch` / `tensorflow`**: (Implicitly, via `transformers`) For GPU acceleration.
 
 #### 3. Project Structure (Refined)
 
@@ -84,9 +86,9 @@ Let's break down the implementation into key components and how they interact.
         *   `chunk_text(text: str, max_tokens: int, overlap: float) -> List[str]`: Divides the input text into a list of text chunks, respecting `max_tokens` and applying `overlap`.
 
 *   **`EmbeddingModel` Class**:
-    *   **Purpose**: Converts text (chunks or queries) into numerical vector embeddings using a pre-trained transformer model.
+    *   **Purpose**: Converts text (chunks or queries) into numerical vector embeddings using a pre-trained transformer model, with support for GPU acceleration.
     *   **Key Functions**:
-        *   `encode(texts: Union[str, List[str]]) -> np.ndarray`: Takes a single string or a list of strings and returns their corresponding embeddings as a NumPy array.
+        *   `encode(texts: Union[str, List[str]]) -> np.ndarray`: Takes a single string or a list of strings and returns their corresponding embeddings as a NumPy array. This function should leverage GPU if available.
 
 *   **`VectorStore` Class**:
     *   **Purpose**: Stores text chunks and their associated embeddings, and facilitates efficient similarity searches to retrieve relevant chunks.
