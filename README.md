@@ -1,20 +1,4 @@
-# Retrieval Augmented Generation (RAG) Project
-
-## Model Context Protocol (MCP)
-### API
-*   **`ingest(file)`**: Ingests file content into the database.
-*   **`query(string, num_matches)`**: Searches database, returns `num_matches` relevant results.
-
-## RAG Implementation
-*   Built with `transformers` Python library.
-*   Data stored in Parquet files and embeddings are searched to find nearest to embedding of query text
-*   **Text Chunking**:
-    *   Splits text into chunks fitting embedding model's max tokens.
-    *   Uses a default embedding model (TBD).
-    *   Configurable overlap (e.g., 30%) between chunks to maintain context.
-
----
-
+# MCPRAG
 ## Project Embellishment: Architectural Vision and Solution Approach
 
 The core idea of this project is to combine a powerful language model with a retrieval mechanism to provide more accurate and contextually relevant answers. The initial `README.md` provides a good foundation with `ingest` and `query` functions, and mentions `transformers`, Parquet, and text chunking.
