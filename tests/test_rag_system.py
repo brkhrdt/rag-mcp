@@ -110,8 +110,14 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     captured = capsys.readouterr()
 
     # Check for the warning message in stderr
-    assert "Warning: chunk_size (2000) exceeds the embedding model's maximum input tokens" in captured.err
-    assert f"Adjusting chunk_size to {rag_system_temp.embedding_model.max_input_tokens}" in captured.err
+    assert (
+        "Warning: chunk_size (2000) exceeds the embedding model's maximum input tokens"
+        in captured.err
+    )
+    assert (
+        f"Adjusting chunk_size to {rag_system_temp.embedding_model.max_input_tokens}"
+        in captured.err
+    )
 
     # Verify that ingestion still occurred and chunks are present
     query_results = rag_system_temp.query("fox jumps", num_results=1)
