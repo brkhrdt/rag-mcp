@@ -1,4 +1,7 @@
 # MCPRAG
+
+This project implements a Retrieval Augmented Generation (RAG) system focused on the retrieval component. It provides functionality to ingest various document types, process them into searchable chunks, and retrieve the most relevant information based on a given query. The system is designed with modularity, allowing for flexible integration with different embedding models and vector stores.
+
 ## Project Embellishment: Architectural Vision and Solution Approach
 
 The core idea of this project is to combine a powerful language model with a retrieval mechanism to provide more accurate and contextually relevant answers. The initial `README.md` provides a good foundation with `ingest` and `query` functions, and mentions `transformers`, Parquet, and text chunking.
