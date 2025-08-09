@@ -94,3 +94,37 @@ def test_reset_vector_store(rag_system_temp, temp_ingest_file):
     # Verify content is gone after reset
     query_results_after_reset = rag_system_temp.query("test sentence", num_results=1)
     assert len(query_results_after_reset) == 0
+
+
+def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, capsys):
+    """
+    Tests that a warning is issued and chunk_size is adjusted when it exceeds
+    the embedding model's max_input_tokens.
+    """
+    file_path, content = temp_ingest_file
+    # Set a chunk_size significantly larger than the default model's max_input_tokens (512)
+    large_chunk_size = 2000
+    rag_system_temp.ingest(file_path, chunk_size=large_chunk_size, chunk_overlap=50)
+
+    # Capture stderr output
+    captured = capsys.readouterr()
+
+    # Check for the warning message in stderr
+    assert "Warning: chunk_size (2000) exceeds the embedding model's maximum input tokens" in captured.err
+    assert f"Adjusting chunk_size to {rag_system_temp.embedding_model.max_input_tokens}" in captured.err
+
+    # Verify that ingestion still occurred and chunks are present
+    query_results = rag_system_temp.query("fox jumps", num_results=1)
+    assert len(query_results) > 0
+    assert "fox jumps over the lazy dog" in query_results[0]["document"]
+
+    # Further verification: check if the actual chunk size used is closer to the max_input_tokens
+    # This is a bit indirect, but if the warning was issued and ingestion succeeded,
+    # it implies the adjustment happened. We can't easily inspect the exact chunk sizes
+    # from the vector store without more direct access or mocking.
+    # However, if the original large_chunk_size was used, the content might be a single chunk,
+    # which we can check by querying for the entire content.
+    # If it was adjusted, there should be multiple chunks.
+    # Given the content length and default max_input_tokens (512), it should be one chunk.
+    # If it was adjusted to 512, and the content is small, it will still be one chunk.
+    # The primary check is the warning message.
