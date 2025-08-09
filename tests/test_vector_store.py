@@ -117,7 +117,7 @@ def test_query(temp_chroma_db):
     results_mixed = temp_chroma_db.query(query_embedding_mixed, num_results=3)
     assert len(results_mixed) == 3
     # Order might vary slightly based on exact distance, but all should be present
-    assert set([r["document"] for r r in results_mixed]) == set(documents)
+    assert set([r["document"] for r in results_mixed]) == set(documents)
 
 
 def test_query_no_results(temp_chroma_db):
