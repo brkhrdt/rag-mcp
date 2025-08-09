@@ -42,7 +42,7 @@ class RAGSystem:
         try:
             text = self.document_processor.extract_text(file_path)
         except ValueError as e:
-            print(f"Error processing file {file_path}: {e}")
+            print(f"Error ingesting file {file_path}: {e}")
             return
 
         # Ensure chunk_size does not exceed the embedding model's max input tokens
@@ -67,7 +67,9 @@ class RAGSystem:
         embeddings = self.embedding_model.embed(chunks)
 
         # Prepare metadata (e.g., source file)
-        metadatas = [{"source": str(file_path)} for _ in chunks]
+        metadatas = [
+            {"source": str(file_path), "chunk_index": i} for i in range(len(chunks))
+        ]
 
         # Add to vector store
         self.vector_store.add_documents(chunks, embeddings, metadatas)

@@ -28,7 +28,10 @@ class EmbeddingModel:
         """
         if isinstance(texts, str):
             return self.model.encode(texts).tolist()
+        elif isinstance(texts, list):
+            return self.model.encode(texts).tolist()
         else:
+            raise TypeError("Input 'texts' must be a string or a list of strings.")
             return self.model.encode(texts).tolist()
 
     @property
