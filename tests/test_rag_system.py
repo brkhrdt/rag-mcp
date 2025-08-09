@@ -123,14 +123,3 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     query_results = rag_system_temp.query("fox jumps", num_results=1)
     assert len(query_results) > 0
     assert "fox jumps over the lazy dog" in query_results[0]["document"]
-
-    # Further verification: check if the actual chunk size used is closer to the max_input_tokens
-    # This is a bit indirect, but if the warning was issued and ingestion succeeded,
-    # it implies the adjustment happened. We can't easily inspect the exact chunk sizes
-    # from the vector store without more direct access or mocking.
-    # However, if the original large_chunk_size was used, the content might be a single chunk,
-    # which we can check by querying for the entire content.
-    # If it was adjusted, there should be multiple chunks.
-    # Given the content length and default max_input_tokens (512), it should be one chunk.
-    # If it was adjusted to 512, and the content is small, it will still be one chunk.
-    # The primary check is the warning message.
