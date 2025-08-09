@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from src.rag_mcp.rag_system import RAGSystem
+from src.rag_mcp.rag_system import RAG
 
 
 def main():
@@ -51,7 +51,7 @@ def main():
 
     args = parser.parse_args()
 
-    rag_system = RAGSystem(chroma_persist_directory=args.db_path)
+    rag_system = RAG(chroma_persist_directory=args.db_path)
 
     if args.command == "ingest":
         file_path = Path(args.file_path)

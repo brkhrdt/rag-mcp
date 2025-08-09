@@ -7,7 +7,7 @@ from src.rag_mcp.text_chunker import TextChunker
 from src.rag_mcp.vector_store import VectorStore
 
 
-class RAGSystem:
+class RAG:
     """
     Orchestrates the entire RAG workflow: ingestion and retrieval.
     """
