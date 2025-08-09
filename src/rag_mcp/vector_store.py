@@ -1,6 +1,6 @@
 # src/rag-mcp/vector_store.py
 import chromadb
-from chromadb.utils import embedding_functions
+# from chromadb.utils import embedding_functions # No longer needed if we always provide embeddings
 from typing import List, Dict, Any, Optional
 
 
@@ -23,20 +23,17 @@ class VectorStore:
             persist_directory (str): The directory where ChromaDB will store its data.
         """
         self.client = chromadb.PersistentClient(path=persist_directory)
-        # Note: ChromaDB's default embedding function is not used here,
-        # as we will provide pre-computed embeddings from our EmbeddingModel.
-        # We pass None for embedding_function to indicate we'll handle embeddings.
+        # We will explicitly provide embeddings when adding documents and querying.
+        # Therefore, we don't need to set an embedding_function for the collection
+        # if we are always providing them ourselves.
+        # ChromaDB will use a default identity function if none is provided,
+        # which is appropriate when external embeddings are always supplied.
         self.collection = self.client.get_or_create_collection(
             name=collection_name,
-            embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(
-                model_name="all-MiniLM-L6-v2"
-            ),  # This is a placeholder, we will override it with our own embeddings
+            # embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(
+            #     model_name="all-MiniLM-L6-v2"
+            # ), # Removed as we provide embeddings externally
         )
-        # When adding documents, we will explicitly pass embeddings.
-        # The embedding_function in get_or_create_collection is primarily for when you let ChromaDB embed for you.
-        # For querying, if you pass query_embeddings, it uses those. If not, it uses the collection's embedding_function.
-        # So, it's safer to initialize with a matching embedding function or ensure we always pass query_embeddings.
-        # For now, we'll keep it simple and assume we always pass embeddings.
 
     def add_documents(
         self,
@@ -55,12 +52,17 @@ class VectorStore:
             ids (Optional[List[str]]): Optional list of unique IDs for each chunk. If None, ChromaDB generates them.
         """
         if not ids:
-            # Generate simple IDs if not provided
+            # Generate simple IDs if not provided. ChromaDB can also generate UUIDs by default.
+            # For testing, explicit simple IDs are useful.
             ids = [f"doc_{i}" for i in range(len(documents))]
-
+        
+        # Ensure metadatas list is the same length as documents, filling with None if not provided
+        if metadatas is None:
+            metadatas = [None] * len(documents)
+        
         if (
             len(documents) != len(embeddings)
-            or (metadatas and len(documents) != len(metadatas))
+            or len(documents) != len(metadatas)
             or len(documents) != len(ids)
         ):
             raise ValueError(
@@ -95,7 +97,8 @@ class VectorStore:
 
         # Format results for easier consumption
         formatted_results = []
-        if results and results["documents"]:
+        # Check if results and documents are not empty before iterating
+        if results and results["documents"] and results["documents"][0]:
             for i in range(len(results["documents"][0])):
                 formatted_results.append(
                     {
@@ -111,10 +114,11 @@ class VectorStore:
         Resets (deletes) the collection. Useful for testing or starting fresh.
         """
         self.client.delete_collection(name=self.collection.name)
+        # Re-create the collection without an embedding function, consistent with __init__
         self.collection = self.client.get_or_create_collection(
             name=self.collection.name,
-            embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(
-                model_name="all-MiniLM-L6-v2"
-            ),
+            # embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(
+            #     model_name="all-MiniLM-L6-v2"
+            # ), # Removed
         )
         print(f"Collection '{self.collection.name}' has been reset.")

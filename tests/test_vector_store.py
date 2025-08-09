@@ -1,6 +1,7 @@
 # tests/test_vector_store.py
 import pytest
 from rag_mcp.vector_store import VectorStore
+import shutil # Import shutil for rmtree
 
 
 # Fixture for a temporary ChromaDB client and collection
@@ -11,8 +12,6 @@ def temp_chroma_db(tmp_path):
     collection_name = "test_collection"
     # Ensure the directory is clean before starting
     if persist_directory.exists():
-        import shutil
-
         shutil.rmtree(persist_directory)
 
     # Initialize VectorStore, which creates the client and collection
@@ -22,8 +21,6 @@ def temp_chroma_db(tmp_path):
     yield vs
     # Teardown: Clean up the ChromaDB directory after tests
     if persist_directory.exists():
-        import shutil
-
         shutil.rmtree(persist_directory)
 
 
@@ -37,19 +34,18 @@ def test_add_documents(temp_chroma_db):
     temp_chroma_db.add_documents(documents, embeddings, metadatas, ids)
 
     # Verify documents were added by querying for them
-    # Note: ChromaDB's query requires an embedding. We'll use a dummy one.
-    # A more robust test would query with an actual embedding and check similarity.
-    # For now, we'll check if the count matches.
     collection = temp_chroma_db.collection
     assert collection.count() == 3
 
     # Retrieve all to check content (less efficient but good for testing small sets)
+    # ChromaDB's .get() method returns IDs by default, no need to include "ids" in the list.
     retrieved = collection.get(
         ids=["id1", "id2", "id3"], include=["documents", "metadatas"]
     )
     assert len(retrieved["documents"]) == 3
     assert "doc one" in retrieved["documents"]
     assert {"source": "file1"} in retrieved["metadatas"]
+    assert set(retrieved["ids"]) == set(ids) # Verify IDs are also returned and match
 
 
 def test_add_documents_no_ids_or_metadatas(temp_chroma_db):
@@ -61,11 +57,14 @@ def test_add_documents_no_ids_or_metadatas(temp_chroma_db):
     collection = temp_chroma_db.collection
     assert collection.count() == 2
     # Check that default IDs were generated (e.g., "doc_0", "doc_1")
-    retrieved = collection.get(include=["documents", "metadatas", "ids"])
+    # Remove "ids" from include as it's returned by default and causes an error if specified.
+    retrieved = collection.get(include=["documents", "metadatas"])
     assert len(retrieved["ids"]) == 2
     assert "doc_0" in retrieved["ids"]
     assert "doc_1" in retrieved["ids"]
-    assert retrieved["metadatas"][0] is None  # Default metadata is None if not provided
+    # Metadatas should be None if not provided
+    assert retrieved["metadatas"][0] is None
+    assert retrieved["metadatas"][1] is None
 
 
 def test_add_documents_mismatched_lengths(temp_chroma_db):
@@ -118,7 +117,7 @@ def test_query(temp_chroma_db):
     results_mixed = temp_chroma_db.query(query_embedding_mixed, num_results=3)
     assert len(results_mixed) == 3
     # Order might vary slightly based on exact distance, but all should be present
-    assert set([r["document"] for r in results_mixed]) == set(documents)
+    assert set([r["document"] for r r in results_mixed]) == set(documents)
 
 
 def test_query_no_results(temp_chroma_db):
