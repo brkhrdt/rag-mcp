@@ -102,7 +102,7 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     the embedding model's max_input_tokens.
     """
     file_path, content = temp_ingest_file
-    # Set a chunk_size significantly larger than the default model's max_input_tokens (512)
+    # Set a chunk_size significantly larger than the default model's max_input_tokens (256 for all-MiniLM-L6-v2)
     large_chunk_size = 2000
     rag_system_temp.ingest(file_path, chunk_size=large_chunk_size, chunk_overlap=50)
 
@@ -111,12 +111,12 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
 
     # Check for the warning message in stderr
     assert (
-        "Warning: chunk_size (2000) exceeds the embedding model's maximum input tokens"
-        in captured.err
+        f"Warning: Requested chunk_size ({large_chunk_size}) exceeds embedding model's max input tokens ({rag_system_temp.embedding_model.max_input_tokens})."
+        in captured.out # The warning is printed to stdout, not stderr
     )
     assert (
-        f"Adjusting chunk_size to {rag_system_temp.embedding_model.max_input_tokens}"
-        in captured.err
+        f"Using effective chunk_size of {rag_system_temp.embedding_model.max_input_tokens}."
+        in captured.out # The warning is printed to stdout, not stderr
     )
 
     # Verify that ingestion still occurred and chunks are present
