@@ -1,95 +1,92 @@
-# src/rag-mcp/rag_system.py
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List, Optional
 
-from .document_processor import DocumentProcessor
-from .text_chunker import TextChunker
-from .embedding_model import EmbeddingModel
-from .vector_store import VectorStore
-
+from src.rag_mcp.document_processor import DocumentProcessor
+from src.rag_mcp.embedding_model import EmbeddingModel
+from src.rag_mcp.text_chunker import TextChunker
+from src.rag_mcp.vector_store import VectorStore
 
 class RAGSystem:
     """
     Orchestrates the entire RAG workflow: ingestion and retrieval.
     """
-
     def __init__(
         self,
         embedding_model_name: str = "all-MiniLM-L6-v2",
         chroma_collection_name: str = "rag_collection",
         chroma_persist_directory: str = "chroma_db",
     ):
-        """
-        Initializes the RAGSystem with its core components.
-
-        Args:
-            embedding_model_name (str): The name of the sentence-transformers model for embeddings.
-            chroma_collection_name (str): The name of the ChromaDB collection.
-            chroma_persist_directory (str): The directory for ChromaDB persistence.
-        """
         self.document_processor = DocumentProcessor()
+        self.embedding_model = EmbeddingModel(embedding_model_name)
         self.text_chunker = TextChunker()
-        self.embedding_model = EmbeddingModel(model_name=embedding_model_name)
-        self.vector_store = VectorStore(
-            collection_name=chroma_collection_name,
-            persist_directory=chroma_persist_directory,
-        )
+        self.vector_store = VectorStore(chroma_collection_name, chroma_persist_directory)
 
     def ingest(self, file_path: Path, chunk_size: int = 512, chunk_overlap: int = 50):
         """
-        Ingests a document into the RAG system.
+        Ingests a document by extracting text, chunking it, embedding chunks,
+        and adding them to the vector store.
 
         Args:
-            file_path (Path): The path to the document to ingest.
-            chunk_size (int): The maximum token size for each text chunk.
-            chunk_overlap (int): The token overlap between chunks.
+            file_path: The path to the document file.
+            chunk_size: The desired size of text chunks in tokens.
+            chunk_overlap: The number of tokens to overlap between consecutive chunks.
         """
-        print(f"Ingesting document: {file_path}")
+        if not file_path.exists():
+            print(f"Error: File not found at {file_path}")
+            return
+
         try:
-            # 1. Extract text
-            raw_text = self.document_processor.extract_text(file_path)
+            text = self.document_processor.extract_text(file_path)
+        except ValueError as e:
+            print(f"Error processing file {file_path}: {e}")
+            return
 
-            # 2. Chunk text
-            chunks = self.text_chunker.chunk_text(raw_text, chunk_size, chunk_overlap)
-            print(f"Split document into {len(chunks)} chunks.")
+        # Ensure chunk_size does not exceed the embedding model's max input tokens
+        model_max_tokens = self.embedding_model.max_input_tokens
+        effective_chunk_size = min(chunk_size, model_max_tokens)
 
-            # 3. Embed chunks
-            embeddings = self.embedding_model.embed(chunks)
-            print(f"Generated embeddings for {len(embeddings)} chunks.")
+        if effective_chunk_size < chunk_size:
+            print(f"Warning: Requested chunk_size ({chunk_size}) exceeds embedding model's max input tokens ({model_max_tokens}). "
+                  f"Using effective_chunk_size of {effective_chunk_size}.")
 
-            # 4. Store chunks and embeddings
-            metadatas = [
-                {"source": str(file_path), "chunk_index": i} for i in range(len(chunks))
-            ]
-            ids = [f"{file_path.stem}_chunk_{i}" for i in range(len(chunks))]
-            self.vector_store.add_documents(
-                documents=chunks, embeddings=embeddings, metadatas=metadatas, ids=ids
-            )
-            print(f"Successfully ingested {file_path}")
+        chunks = self.text_chunker.chunk_text(
+            text, chunk_size=effective_chunk_size, chunk_overlap=chunk_overlap
+        )
 
-        except Exception as e:
-            print(f"Error ingesting {file_path}: {e}")
+        if not chunks:
+            print(f"No chunks generated from {file_path}. Skipping ingestion.")
+            return
+
+        # Generate embeddings for the chunks
+        embeddings = self.embedding_model.embed(chunks)
+
+        # Prepare metadata (e.g., source file)
+        metadatas = [{"source": str(file_path)} for _ in chunks]
+
+        # Add to vector store
+        self.vector_store.add_documents(chunks, embeddings, metadatas)
+        print(f"Ingested {len(chunks)} chunks from {file_path}")
 
     def query(self, query_text: str, num_results: int = 5) -> List[Dict[str, Any]]:
         """
-        Queries the RAG system for relevant information.
+        Queries the RAG system with a given text, retrieves relevant documents,
+        and returns them.
 
         Args:
-            query_text (str): The query string.
-            num_results (int): The number of top relevant results to retrieve.
+            query_text: The user's query string.
+            num_results: The number of top relevant results to retrieve.
 
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries, each containing 'document', 'metadata', and 'distance'.
+            A list of dictionaries, where each dictionary contains the content
+            and metadata of a retrieved chunk.
         """
-        print(f"Processing query: '{query_text}'")
-        # 1. Embed query
         query_embedding = self.embedding_model.embed(query_text)
-
-        # 2. Retrieve relevant chunks
         results = self.vector_store.query(query_embedding, num_results)
-        print(f"Retrieved {len(results)} relevant chunks.")
         return results
 
     def reset_vector_store(self):
-        """Resets the underlying vector store."""
+        """
+        Resets (clears) the entire vector store.
+        """
         self.vector_store.reset()
+        print("Vector store has been reset.")
