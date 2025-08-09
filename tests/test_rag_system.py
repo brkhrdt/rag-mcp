@@ -112,11 +112,11 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     # Check for the warning message in stderr
     assert (
         f"Warning: Requested chunk_size ({large_chunk_size}) exceeds embedding model's max input tokens ({rag_system_temp.embedding_model.max_input_tokens})."
-        in captured.out # The warning is printed to stdout, not stderr
+        in captured.out  # The warning is printed to stdout, not stderr
     )
     assert (
         f"Using effective chunk_size of {rag_system_temp.embedding_model.max_input_tokens}."
-        in captured.out # The warning is printed to stdout, not stderr
+        in captured.out  # The warning is printed to stdout, not stderr
     )
 
     # Verify that ingestion still occurred and chunks are present
