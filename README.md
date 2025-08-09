@@ -92,3 +92,49 @@ Let's break down the implementation into key components and how they interact.
     -   `test_embedding_model.py`
     -   `test_vector_store.py`
     -   `test_rag_system.py`
+
+## Usage
+
+To use the RAG system, you'll typically follow these steps:
+
+1.  **Initialize the RAGSystem:**
+    ```python
+    from src.rag_mcp.rag_system import RAGSystem
+    rag_system = RAGSystem()
+    ```
+
+2.  **Ingest Documents:**
+    Prepare your documents (e.g., `.txt` files) and ingest them.
+    ```python
+    from pathlib import Path
+    # Create a dummy text file for demonstration
+    with open("example.txt", "w") as f:
+        f.write("This is a sample document about the capital of France. Paris is the capital and largest city of France.")
+
+    file_path = Path("example.txt")
+    rag_system.ingest(file_path)
+    ```
+    You can ingest multiple documents. Each document will be processed, chunked, embedded, and stored in the vector store.
+
+3.  **Query the System:**
+    Once documents are ingested, you can query the system to retrieve relevant information.
+    ```python
+    query_text = "What is the capital of France?"
+    results = rag_system.query(query_text, num_results=2)
+
+    print("\nQuery Results:")
+    for i, result in enumerate(results):
+        print(f"Result {i+1}:")
+        print(f"  Document: {result['document']}")
+        print(f"  Metadata: {result['metadata']}")
+        print(f"  Distance: {result['distance']:.4f}")
+    ```
+
+4.  **Resetting the Vector Store (Optional):**
+    If you want to clear all ingested data and start fresh, you can reset the vector store.
+    ```python
+    rag_system.reset_vector_store()
+    print("\nVector store has been reset.")
+    ```
+
+**Note:** Ensure you have all necessary dependencies installed (`pip install -r requirements.txt` or similar, once a `requirements.txt` is defined). The `chroma_db` directory will be created in your project root to persist the vector store data.
