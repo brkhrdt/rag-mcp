@@ -1,4 +1,4 @@
-.PHONY: lint test
+.PHONY: lint test run
 
 lint:
 	uv run ruff format
@@ -7,3 +7,6 @@ lint:
 
 test:
 	uv run pytest
+
+run:
+	uv run python main.py
