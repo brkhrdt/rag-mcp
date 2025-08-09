@@ -1,9 +1,8 @@
 # tests/test_rag_system.py
 import pytest
-from pathlib import Path
 from src.rag_mcp.rag_system import RAGSystem
-import os
 import shutil
+
 
 # Fixture for a temporary RAGSystem instance
 @pytest.fixture
@@ -16,12 +15,13 @@ def rag_system_temp(tmp_path):
 
     system = RAGSystem(
         chroma_collection_name="test_rag_collection",
-        chroma_persist_directory=str(chroma_persist_dir)
+        chroma_persist_directory=str(chroma_persist_dir),
     )
     yield system
     # Teardown: Clean up the ChromaDB directory after tests
     if chroma_persist_dir.exists():
         shutil.rmtree(chroma_persist_dir)
+
 
 @pytest.fixture
 def temp_ingest_file(tmp_path):
@@ -35,6 +35,7 @@ def temp_ingest_file(tmp_path):
     file_path.write_text(content)
     return file_path, content
 
+
 def test_ingest_document(rag_system_temp, temp_ingest_file):
     """Tests the ingestion process of the RAGSystem."""
     file_path, content = temp_ingest_file
@@ -47,9 +48,10 @@ def test_ingest_document(rag_system_temp, temp_ingest_file):
     # but querying is a good integration test.
     query_results = rag_system_temp.query("fox jumps", num_results=1)
     assert len(query_results) > 0
-    assert "fox jumps over the lazy dog" in query_results[0]['document']
-    assert query_results[0]['metadata']['source'] == str(file_path)
-    assert 'chunk_index' in query_results[0]['metadata']
+    assert "fox jumps over the lazy dog" in query_results[0]["document"]
+    assert query_results[0]["metadata"]["source"] == str(file_path)
+    assert "chunk_index" in query_results[0]["metadata"]
+
 
 def test_query_system(rag_system_temp, temp_ingest_file):
     """Tests the query functionality of the RAGSystem."""
@@ -60,9 +62,10 @@ def test_query_system(rag_system_temp, temp_ingest_file):
     results = rag_system_temp.query(query_text, num_results=1)
 
     assert len(results) == 1
-    assert "Artificial intelligence" in results[0]['document']
-    assert results[0]['metadata']['source'] == str(file_path)
-    assert 'distance' in results[0]
+    assert "Artificial intelligence" in results[0]["document"]
+    assert results[0]["metadata"]["source"] == str(file_path)
+    assert "distance" in results[0]
+
 
 def test_ingest_unsupported_file_type(rag_system_temp, tmp_path, capsys):
     """Tests ingestion of an unsupported file type."""
@@ -75,6 +78,7 @@ def test_ingest_unsupported_file_type(rag_system_temp, tmp_path, capsys):
     captured = capsys.readouterr()
     assert "Error ingesting" in captured.out
     assert "Unsupported file type" in captured.out
+
 
 def test_reset_vector_store(rag_system_temp, temp_ingest_file):
     """Tests resetting the vector store via RAGSystem."""
@@ -90,4 +94,3 @@ def test_reset_vector_store(rag_system_temp, temp_ingest_file):
     # Verify content is gone after reset
     query_results_after_reset = rag_system_temp.query("test sentence", num_results=1)
     assert len(query_results_after_reset) == 0
-
