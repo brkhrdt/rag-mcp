@@ -1,5 +1,6 @@
 # src/rag-mcp/vector_store.py
 import chromadb
+from chromadb.config import Settings
 
 # from chromadb.utils import embedding_functions # No longer needed if we always provide embeddings
 from typing import List, Dict, Any, Optional
@@ -23,7 +24,9 @@ class VectorStore:
             collection_name (str): The name of the collection to use.
             persist_directory (str): The directory where ChromaDB will store its data.
         """
-        self.client = chromadb.PersistentClient(path=persist_directory)
+        self.client = chromadb.PersistentClient(
+            path=persist_directory, settings=Settings(anonymized_telemetry=False)
+        )
         # We will explicitly provide embeddings when adding documents and querying.
         # Therefore, we don't need to set an embedding_function for the collection
         # if we are always providing them ourselves.
