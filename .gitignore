@@ -1,11 +1,17 @@
-# Python-generated files
+# Python
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-
-# Virtual environments
+*.pyc
+*.pyo
+*.pyd
+.Python
 .venv
-.python-version
+
+# IDEs
+.idea/
+.vscode/
+
+# PDM
+.pdm-build/
+
+# ChromaDB
+chroma_db/

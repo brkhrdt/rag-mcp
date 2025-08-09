@@ -1,7 +1,25 @@
 [project]
-name = "rag-mcp"
+name = "mcprag"
 version = "0.1.0"
-description = "Add your description here"
+description = "A Retrieval Augmented Generation (RAG) system focused on retrieval."
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }, # TODO: Replace with your name and email
+]
+dependencies = [
+    "chromadb~=0.4.22",
+    "sentence-transformers~=2.2.2",
+    "pypdf~=3.17.4",
+    "python-docx~=1.1.0",
+    "tiktoken~=0.5.2",
+    "torch>=2.0.0", # Added for sentence-transformers GPU support
+]
+requires-python = ">=3.10"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
+license = { text = "MIT" }
+
+[project.scripts]
+mcprag = "main:main"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
