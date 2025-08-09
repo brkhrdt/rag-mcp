@@ -88,4 +88,3 @@ def test_chunk_text_exact_fit(text_chunker):
         text_chunker.tokenizer.decode(text_chunker.tokenizer.encode(text_exact)[6:])
         == chunks[1]
     )
-
