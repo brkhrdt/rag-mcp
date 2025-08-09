@@ -1,7 +1,7 @@
 # tests/test_vector_store.py
 import pytest
 from rag_mcp.vector_store import VectorStore
-import shutil # Import shutil for rmtree
+import shutil  # Import shutil for rmtree
 
 
 # Fixture for a temporary ChromaDB client and collection
@@ -45,7 +45,7 @@ def test_add_documents(temp_chroma_db):
     assert len(retrieved["documents"]) == 3
     assert "doc one" in retrieved["documents"]
     assert {"source": "file1"} in retrieved["metadatas"]
-    assert set(retrieved["ids"]) == set(ids) # Verify IDs are also returned and match
+    assert set(retrieved["ids"]) == set(ids)  # Verify IDs are also returned and match
 
 
 def test_add_documents_no_ids_or_metadatas(temp_chroma_db):
