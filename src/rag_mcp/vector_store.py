@@ -6,23 +6,11 @@ from typing import List, Dict, Any, Optional
 
 
 class VectorStore:
-    """
-    Stores text chunks and their corresponding embeddings using ChromaDB,
-    and performs efficient similarity searches.
-    """
-
     def __init__(
         self,
         collection_name: str = "rag_collection",
         persist_directory: str = "chroma_db",
     ):
-        """
-        Initializes the VectorStore with a ChromaDB client.
-
-        Args:
-            collection_name (str): The name of the collection to use.
-            persist_directory (str): The directory where ChromaDB will store its data.
-        """
         self.client = chromadb.PersistentClient(
             path=persist_directory, settings=Settings(anonymized_telemetry=False)
         )
@@ -38,15 +26,6 @@ class VectorStore:
         metadatas: Optional[List[Dict[str, Any]]] = None,
         ids: Optional[List[str]] = None,
     ):
-        """
-        Adds documents (chunks), their embeddings, and optional metadata to the vector store.
-
-        Args:
-            documents (List[str]): The text content of the chunks.
-            embeddings (List[List[float]]): The corresponding embeddings for each chunk.
-            metadatas (Optional[List[Dict[str, Any]]]): Optional list of metadata dictionaries for each chunk.
-            ids (Optional[List[str]]): Optional list of unique IDs for each chunk. If None, ChromaDB generates them.
-        """
         if not ids:
             ids = [f"doc_{i}" for i in range(len(documents))]
 
@@ -72,16 +51,6 @@ class VectorStore:
     def query(
         self, query_embedding: List[float], num_results: int = 5
     ) -> List[Dict[str, Any]]:
-        """
-        Performs a similarity search against the stored embeddings.
-
-        Args:
-            query_embedding (List[float]): The embedding of the query.
-            num_results (int): The number of top relevant results to retrieve.
-
-        Returns:
-            List[Dict[str, Any]]: A list of dictionaries, each containing 'document', 'metadata', and 'distance'.
-        """
         results = self.collection.query(
             query_embeddings=[query_embedding],
             n_results=num_results,
@@ -102,9 +71,6 @@ class VectorStore:
         return formatted_results
 
     def reset(self):
-        """
-        Resets (deletes) the collection. Useful for testing or starting fresh.
-        """
         self.client.delete_collection(name=self.collection.name)
 
         self.collection = self.client.get_or_create_collection(
