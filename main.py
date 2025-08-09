@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 from src.rag_mcp.rag_system import RAGSystem
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="RAG System CLI for document ingestion and querying."
@@ -63,7 +64,7 @@ def main():
         if results:
             print("\n--- Query Results ---")
             for i, res in enumerate(results):
-                print(f"\nResult {i+1}:")
+                print(f"\nResult {i + 1}:")
                 print(f"  Source: {res['metadata'].get('source', 'N/A')}")
                 print(f"  Chunk Index: {res['metadata'].get('chunk_index', 'N/A')}")
                 print(f"  Distance: {res['distance']:.4f}")
@@ -72,6 +73,7 @@ def main():
             print("No results found for your query.")
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()
