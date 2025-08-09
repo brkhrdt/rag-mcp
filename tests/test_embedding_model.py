@@ -1,6 +1,6 @@
 # tests/test_embedding_model.py
 import pytest
-from src.rag_mcp.embedding_model import EmbeddingModel
+from rag_mcp.embedding_model import EmbeddingModel
 from typing import List
 
 # Use a smaller, faster model for testing if possible, or mock the model.

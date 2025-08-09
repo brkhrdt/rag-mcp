@@ -1,6 +1,6 @@
 # tests/test_rag_system.py
 import pytest
-from src.rag_mcp.rag_system import RAGSystem
+from rag_mcp.rag_system import RAGSystem
 import shutil
 
 

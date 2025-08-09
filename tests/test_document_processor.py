@@ -1,6 +1,6 @@
 # tests/test_document_processor.py
 import pytest
-from src.rag_mcp.document_processor import DocumentProcessor
+from rag_mcp.document_processor import DocumentProcessor
 
 
 @pytest.fixture

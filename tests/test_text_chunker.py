@@ -1,6 +1,6 @@
 # tests/test_text_chunker.py
 import pytest
-from src.rag_mcp.text_chunker import TextChunker
+from rag_mcp.text_chunker import TextChunker
 
 
 @pytest.fixture

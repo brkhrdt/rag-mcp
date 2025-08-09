@@ -1,6 +1,6 @@
 # tests/test_vector_store.py
 import pytest
-from src.rag_mcp.vector_store import VectorStore
+from rag_mcp.vector_store import VectorStore
 
 
 # Fixture for a temporary ChromaDB client and collection

@@ -12,6 +12,7 @@ dependencies = [
     "python-docx~=1.1.0",
     "tiktoken~=0.5.2",
     "torch>=2.0.0", # Added for sentence-transformers GPU support
+    "pytest>=8.4.1",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -28,3 +29,11 @@ build-backend = "pdm.backend"
 dev = [
     "pytest>=7.0.0",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+pythonpath = "src"
