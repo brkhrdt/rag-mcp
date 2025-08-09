@@ -1,4 +1,3 @@
-# src/rag-mcp/document_processor.py
 from pathlib import Path
 
 
@@ -29,5 +28,4 @@ class DocumentProcessor:
             with open(file_path, "r", encoding="utf-8") as f:
                 return f.read()
         else:
-            # Future: Add support for .pdf, .docx, etc.
             raise ValueError(f"Unsupported file type: {file_path.suffix}")

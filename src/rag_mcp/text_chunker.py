@@ -1,4 +1,3 @@
-# src/rag-mcp/text_chunker.py
 import tiktoken
 from typing import List
 
@@ -47,15 +46,10 @@ class TextChunker:
             chunks.append(self.tokenizer.decode(chunk_tokens))
 
             if end_index == len(tokens):
-                break  # Reached the end of the text
+                break
 
-            # Move start_index for the next chunk, accounting for overlap
             start_index += chunk_size - chunk_overlap
 
-            # If the next start_index would be within the last chunk's tokens,
-            # and that chunk was already processed, we are done.
-            # This prevents creating an empty or very small last chunk if the overlap
-            # causes the start_index to jump past the remaining tokens.
             if start_index >= len(tokens) - chunk_overlap and end_index == len(tokens):
                 break
 

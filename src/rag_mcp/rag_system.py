@@ -45,7 +45,6 @@ class RAG:
             print(f"Error ingesting file {file_path}: {e}")
             return
 
-        # Ensure chunk_size does not exceed the embedding model's max input tokens
         model_max_tokens = self.embedding_model.max_input_tokens
         effective_chunk_size = min(chunk_size, model_max_tokens)
 
@@ -63,15 +62,12 @@ class RAG:
             print(f"No chunks generated from {file_path}. Skipping ingestion.")
             return
 
-        # Generate embeddings for the chunks
         embeddings = self.embedding_model.embed(chunks)
 
-        # Prepare metadata (e.g., source file)
         metadatas = [
             {"source": str(file_path), "chunk_index": i} for i in range(len(chunks))
         ]
 
-        # Add to vector store
         self.vector_store.add_documents(chunks, embeddings, metadatas)
         print(f"Ingested {len(chunks)} chunks from {file_path}")
 

@@ -37,5 +37,5 @@ class EmbeddingModel:
     @property
     def max_input_tokens(self) -> int:
         """Returns the maximum number of tokens the model can process."""
-        # Access the max_seq_length from the underlying SentenceTransformer model
+
         return self.model.max_seq_length
