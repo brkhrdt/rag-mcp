@@ -75,11 +75,6 @@ def test_chunk_text_overlap_greater_than_chunk_size(text_chunker):
 
 def test_chunk_text_exact_fit(text_chunker):
     """Tests text that fits exactly into chunks."""
-    text = "This is a test. This is another test. This is the last test."
-    # "This is a test." -> 5 tokens
-    # " This is another test." -> 6 tokens
-    # " This is the last test." -> 6 tokens
-    # Total: 17 tokens
     # Let's make it simpler for exact fit:
     text_exact = "token one token two token three token four token five token six"
     # 12 tokens (cl100k_base)
@@ -93,3 +88,4 @@ def test_chunk_text_exact_fit(text_chunker):
         text_chunker.tokenizer.decode(text_chunker.tokenizer.encode(text_exact)[6:])
         == chunks[1]
     )
+
