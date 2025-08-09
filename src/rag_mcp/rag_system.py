@@ -1,15 +1,17 @@
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from src.rag_mcp.document_processor import DocumentProcessor
 from src.rag_mcp.embedding_model import EmbeddingModel
 from src.rag_mcp.text_chunker import TextChunker
 from src.rag_mcp.vector_store import VectorStore
 
+
 class RAGSystem:
     """
     Orchestrates the entire RAG workflow: ingestion and retrieval.
     """
+
     def __init__(
         self,
         embedding_model_name: str = "all-MiniLM-L6-v2",
@@ -19,7 +21,9 @@ class RAGSystem:
         self.document_processor = DocumentProcessor()
         self.embedding_model = EmbeddingModel(embedding_model_name)
         self.text_chunker = TextChunker()
-        self.vector_store = VectorStore(chroma_collection_name, chroma_persist_directory)
+        self.vector_store = VectorStore(
+            chroma_collection_name, chroma_persist_directory
+        )
 
     def ingest(self, file_path: Path, chunk_size: int = 512, chunk_overlap: int = 50):
         """
@@ -46,8 +50,10 @@ class RAGSystem:
         effective_chunk_size = min(chunk_size, model_max_tokens)
 
         if effective_chunk_size < chunk_size:
-            print(f"Warning: Requested chunk_size ({chunk_size}) exceeds embedding model's max input tokens ({model_max_tokens}). "
-                  f"Using effective_chunk_size of {effective_chunk_size}.")
+            print(
+                f"Warning: Requested chunk_size ({chunk_size}) exceeds embedding model's max input tokens ({model_max_tokens}). "
+                f"Using effective_chunk_size of {effective_chunk_size}."
+            )
 
         chunks = self.text_chunker.chunk_text(
             text, chunk_size=effective_chunk_size, chunk_overlap=chunk_overlap
