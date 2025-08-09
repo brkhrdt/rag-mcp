@@ -73,3 +73,7 @@ Let's break down the implementation into key components and how they interact.
 
 #### 3. Project Structure
 
+-   `.gitignore`
+-   `main.py`
+-   `pyproject.toml`
+-   `README.md`
