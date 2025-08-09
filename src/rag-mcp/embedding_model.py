@@ -3,6 +3,7 @@ from sentence_transformers import SentenceTransformer
 import torch
 from typing import List, Union
 
+
 class EmbeddingModel:
     """
     Converts text chunks and queries into numerical vector embeddings.
@@ -21,7 +22,9 @@ class EmbeddingModel:
         print(f"Using device: {self.device}")
         self.model = SentenceTransformer(model_name, device=self.device)
 
-    def embed(self, texts: Union[str, List[str]]) -> Union[List[float], List[List[float]]]:
+    def embed(
+        self, texts: Union[str, List[str]]
+    ) -> Union[List[float], List[List[float]]]:
         """
         Generates embeddings for a single text or a list of texts.
 
@@ -38,4 +41,3 @@ class EmbeddingModel:
             return self.model.encode(texts).tolist()
         else:
             raise TypeError("Input 'texts' must be a string or a list of strings.")
-

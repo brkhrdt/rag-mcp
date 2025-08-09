@@ -7,15 +7,18 @@ from .text_chunker import TextChunker
 from .embedding_model import EmbeddingModel
 from .vector_store import VectorStore
 
+
 class RAGSystem:
     """
     Orchestrates the entire RAG workflow: ingestion and retrieval.
     """
 
-    def __init__(self,
-                 embedding_model_name: str = "all-MiniLM-L6-v2",
-                 chroma_collection_name: str = "rag_collection",
-                 chroma_persist_directory: str = "chroma_db"):
+    def __init__(
+        self,
+        embedding_model_name: str = "all-MiniLM-L6-v2",
+        chroma_collection_name: str = "rag_collection",
+        chroma_persist_directory: str = "chroma_db",
+    ):
         """
         Initializes the RAGSystem with its core components.
 
@@ -29,7 +32,7 @@ class RAGSystem:
         self.embedding_model = EmbeddingModel(model_name=embedding_model_name)
         self.vector_store = VectorStore(
             collection_name=chroma_collection_name,
-            persist_directory=chroma_persist_directory
+            persist_directory=chroma_persist_directory,
         )
 
     def ingest(self, file_path: Path, chunk_size: int = 512, chunk_overlap: int = 50):
@@ -55,9 +58,13 @@ class RAGSystem:
             print(f"Generated embeddings for {len(embeddings)} chunks.")
 
             # 4. Store chunks and embeddings
-            metadatas = [{"source": str(file_path), "chunk_index": i} for i in range(len(chunks))]
+            metadatas = [
+                {"source": str(file_path), "chunk_index": i} for i in range(len(chunks))
+            ]
             ids = [f"{file_path.stem}_chunk_{i}" for i in range(len(chunks))]
-            self.vector_store.add_documents(documents=chunks, embeddings=embeddings, metadatas=metadatas, ids=ids)
+            self.vector_store.add_documents(
+                documents=chunks, embeddings=embeddings, metadatas=metadatas, ids=ids
+            )
             print(f"Successfully ingested {file_path}")
 
         except Exception as e:
@@ -86,4 +93,3 @@ class RAGSystem:
     def reset_vector_store(self):
         """Resets the underlying vector store."""
         self.vector_store.reset()
-

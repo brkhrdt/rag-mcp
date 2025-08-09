@@ -1,6 +1,7 @@
 # src/rag-mcp/document_processor.py
 from pathlib import Path
 
+
 class DocumentProcessor:
     """
     Handles extracting raw text from various file types.
@@ -25,9 +26,8 @@ class DocumentProcessor:
             raise FileNotFoundError(f"File not found: {file_path}")
 
         if file_path.suffix == ".txt":
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 return f.read()
         else:
             # Future: Add support for .pdf, .docx, etc.
             raise ValueError(f"Unsupported file type: {file_path.suffix}")
-

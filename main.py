@@ -2,6 +2,7 @@
 from pathlib import Path
 from src.rag_mcp.rag_system import RAGSystem
 
+
 def main():
     print("Starting MCPRAG system...")
 
@@ -13,13 +14,15 @@ def main():
     # 1. Create a dummy text file for ingestion
     dummy_file_path = Path("example_document.txt")
     with open(dummy_file_path, "w", encoding="utf-8") as f:
-        f.write("This is the first sentence about artificial intelligence. "
-                "AI is transforming various industries. "
-                "Machine learning is a subset of AI. "
-                "Deep learning is a more advanced form of machine learning. "
-                "Natural Language Processing (NLP) is a key area in AI. "
-                "Robotics also heavily utilizes AI principles. "
-                "The future of technology is intertwined with AI development.")
+        f.write(
+            "This is the first sentence about artificial intelligence. "
+            "AI is transforming various industries. "
+            "Machine learning is a subset of AI. "
+            "Deep learning is a more advanced form of machine learning. "
+            "Natural Language Processing (NLP) is a key area in AI. "
+            "Robotics also heavily utilizes AI principles. "
+            "The future of technology is intertwined with AI development."
+        )
     print(f"Created dummy document: {dummy_file_path}")
 
     # 2. Ingest the document
@@ -32,8 +35,10 @@ def main():
     print("\n--- Query Results ---")
     if results:
         for i, result in enumerate(results):
-            print(f"Result {i+1} (Distance: {result['distance']:.4f}):")
-            print(f"  Source: {result['metadata'].get('source', 'N/A')}, Chunk Index: {result['metadata'].get('chunk_index', 'N/A')}")
+            print(f"Result {i + 1} (Distance: {result['distance']:.4f}):")
+            print(
+                f"  Source: {result['metadata'].get('source', 'N/A')}, Chunk Index: {result['metadata'].get('chunk_index', 'N/A')}"
+            )
             print(f"  Document: {result['document']}\n")
     else:
         print("No results found.")
@@ -51,4 +56,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

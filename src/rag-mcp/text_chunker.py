@@ -2,6 +2,7 @@
 import tiktoken
 from typing import List
 
+
 class TextChunker:
     """
     Splits raw text into manageable, overlapping chunks suitable for embedding models.
@@ -43,12 +44,11 @@ class TextChunker:
             chunks.append(self.tokenizer.decode(chunk_tokens))
 
             if end_index == len(tokens):
-                break # Reached the end of the text
+                break  # Reached the end of the text
 
-            start_index += (chunk_size - chunk_overlap)
+            start_index += chunk_size - chunk_overlap
             # Ensure start_index doesn't go past the end if the last chunk was small
             if start_index >= len(tokens):
                 break
 
         return chunks
-
