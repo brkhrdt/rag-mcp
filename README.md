@@ -71,33 +71,5 @@ Let's break down the implementation into key components and how they interact.
 *   **`pathlib`**: For robust file path handling.
 *   **`torch` / `tensorflow`**: (Implicitly, via `transformers`) For GPU acceleration.
 
-#### 3. Project Structure (Refined)
+#### 3. Project Structure
 
-#### 4. Class and Function Descriptions
-
-*   **`DocumentProcessor` Class**:
-    *   **Purpose**: Responsible for extracting raw text content from various document formats. Initially, this will support plain text files.
-    *   **Key Functions**:
-        *   `extract_text(file_path: str) -> str`: Takes a file path and returns the extracted plain text content.
-
-*   **`TextChunker` Class**:
-    *   **Purpose**: Splits long text documents into smaller, manageable chunks suitable for embedding models, ensuring proper token limits and configurable overlap.
-    *   **Key Functions**:
-        *   `chunk_text(text: str, max_tokens: int, overlap: float) -> List[str]`: Divides the input text into a list of text chunks, respecting `max_tokens` and applying `overlap`.
-
-*   **`EmbeddingModel` Class**:
-    *   **Purpose**: Converts text (chunks or queries) into numerical vector embeddings using a pre-trained transformer model, with support for GPU acceleration.
-    *   **Key Functions**:
-        *   `encode(texts: Union[str, List[str]]) -> np.ndarray`: Takes a single string or a list of strings and returns their corresponding embeddings as a NumPy array. This function should leverage GPU if available.
-
-*   **`VectorStore` Class**:
-    *   **Purpose**: Stores text chunks and their associated embeddings, and facilitates efficient similarity searches to retrieve relevant chunks.
-    *   **Key Functions**:
-        *   `add_documents(documents: List[str], embeddings: List[np.ndarray], metadatas: Optional[List[Dict]] = None)`: Adds text documents, their embeddings, and optional metadata to the store.
-        *   `search(query_embedding: np.ndarray, num_results: int) -> List[Dict]`: Searches the store for the `num_results` most similar documents to the `query_embedding`, returning the relevant chunks and their metadata.
-
-*   **`RAGSystem` Class (or `main.py` orchestration)**:
-    *   **Purpose**: Orchestrates the entire Retrieval Augmented Generation workflow, integrating all other components from ingestion to query response.
-    *   **Key Functions**:
-        *   `ingest(file_path: str)`: Processes a document from the given `file_path`, extracts text, chunks it, generates embeddings, and stores them in the `VectorStore`.
-        *   `query(user_query: str, num_matches: int = 5) -> List[Dict]`: Takes a `user_query`, retrieves the `num_matches` most relevant chunks from the `VectorStore`, and returns them.
