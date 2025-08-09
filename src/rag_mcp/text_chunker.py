@@ -36,7 +36,7 @@ class TextChunker:
 
         tokens = self.tokenizer.encode(text)
         chunks = []
-        
+
         if not tokens:
             return []
 
@@ -51,7 +51,7 @@ class TextChunker:
 
             # Move start_index for the next chunk, accounting for overlap
             start_index += chunk_size - chunk_overlap
-            
+
             # If the next start_index would be within the last chunk's tokens,
             # and that chunk was already processed, we are done.
             # This prevents creating an empty or very small last chunk if the overlap

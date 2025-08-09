@@ -1,5 +1,6 @@
 # src/rag-mcp/vector_store.py
 import chromadb
+
 # from chromadb.utils import embedding_functions # No longer needed if we always provide embeddings
 from typing import List, Dict, Any, Optional
 
@@ -55,11 +56,11 @@ class VectorStore:
             # Generate simple IDs if not provided. ChromaDB can also generate UUIDs by default.
             # For testing, explicit simple IDs are useful.
             ids = [f"doc_{i}" for i in range(len(documents))]
-        
+
         # Ensure metadatas list is the same length as documents, filling with None if not provided
         if metadatas is None:
             metadatas = [None] * len(documents)
-        
+
         if (
             len(documents) != len(embeddings)
             or len(documents) != len(metadatas)
