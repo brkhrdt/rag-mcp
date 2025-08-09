@@ -1,4 +1,3 @@
-# tests/test_document_processor.py
 import pytest
 from rag_mcp.document_processor import DocumentProcessor
 
@@ -21,7 +20,7 @@ def temp_txt_file(tmp_path):
 @pytest.fixture
 def temp_unsupported_file(tmp_path):
     """Creates a temporary file with an unsupported extension."""
-    file_path = tmp_path / "test_doc.pdf"  # Using .pdf as an example of unsupported
+    file_path = tmp_path / "test_doc.pdf"
     file_path.write_text("PDF content simulation")
     return file_path
 
