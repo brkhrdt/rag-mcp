@@ -102,11 +102,12 @@ def test_chunk_text_exact_fit(text_chunker):
 
 def test_chunk_text_single_token_chunk_size(text_chunker):
     """Tests chunking with chunk_size = 1."""
-    text = "Hello world!"  # 2 tokens
+    text = "Hello world!"  # "Hello", " world", "!" are 3 tokens with cl100k_base
     chunks = text_chunker.chunk_text(text, chunk_size=1, chunk_overlap=0)
-    assert len(chunks) == 2
+    assert len(chunks) == 3
     assert chunks[0] == "Hello"
-    assert chunks[1] == " world!"
+    assert chunks[1] == " world"
+    assert chunks[2] == "!"
 
 
 def test_chunk_text_overlap_one_token(text_chunker):
