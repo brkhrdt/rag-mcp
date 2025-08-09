@@ -78,12 +78,13 @@ Let's break down the implementation into key components and how they interact.
 -   `pyproject.toml`
 -   `README.md`
 -   `src/`
-    -   `__init__.py`
-    -   `document_processor.py`
-    -   `text_chunker.py`
-    -   `embedding_model.py`
-    -   `vector_store.py`
-    -   `rag_system.py`
+    -   `rag-mcp/`
+        -   `__init__.py`
+        -   `document_processor.py`
+        -   `text_chunker.py`
+        -   `embedding_model.py`
+        -   `vector_store.py`
+        -   `rag_system.py`
 -   `tests/`
     -   `__init__.py`
     -   `test_document_processor.py`
