@@ -1,58 +1,77 @@
-# main.py
+import argparse
 from pathlib import Path
 from src.rag_mcp.rag_system import RAGSystem
 
-
 def main():
-    print("Starting MCPRAG system...")
+    parser = argparse.ArgumentParser(
+        description="RAG System CLI for document ingestion and querying."
+    )
 
-    # Initialize the RAG system
-    rag_system = RAGSystem()
+    parser.add_argument(
+        "--db-path",
+        type=str,
+        default="chroma_db",
+        help="Path to the ChromaDB persistence directory (default: chroma_db)",
+    )
 
-    # --- Example Usage ---
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # 1. Create a dummy text file for ingestion
-    dummy_file_path = Path("example_document.txt")
-    with open(dummy_file_path, "w", encoding="utf-8") as f:
-        f.write(
-            "This is the first sentence about artificial intelligence. "
-            "AI is transforming various industries. "
-            "Machine learning is a subset of AI. "
-            "Deep learning is a more advanced form of machine learning. "
-            "Natural Language Processing (NLP) is a key area in AI. "
-            "Robotics also heavily utilizes AI principles. "
-            "The future of technology is intertwined with AI development."
-        )
-    print(f"Created dummy document: {dummy_file_path}")
+    # Ingest command
+    ingest_parser = subparsers.add_parser(
+        "ingest", help="Ingest a document into the RAG system"
+    )
+    ingest_parser.add_argument(
+        "file_path", type=str, help="Path to the document file to ingest"
+    )
+    ingest_parser.add_argument(
+        "--chunk-size",
+        type=int,
+        default=512,
+        help="Maximum token size for each text chunk (default: 512)",
+    )
+    ingest_parser.add_argument(
+        "--chunk-overlap",
+        type=int,
+        default=50,
+        help="Token overlap between chunks (default: 50)",
+    )
 
-    # 2. Ingest the document
-    rag_system.ingest(dummy_file_path)
+    # Query command
+    query_parser = subparsers.add_parser(
+        "query", help="Query the RAG system for relevant information"
+    )
+    query_parser.add_argument("query_text", type=str, help="The query string")
+    query_parser.add_argument(
+        "--num-results",
+        type=int,
+        default=5,
+        help="Number of top relevant results to retrieve (default: 5)",
+    )
 
-    # 3. Perform a query
-    query_text = "What is machine learning?"
-    results = rag_system.query(query_text, num_results=2)
+    args = parser.parse_args()
 
-    print("\n--- Query Results ---")
-    if results:
-        for i, result in enumerate(results):
-            print(f"Result {i + 1} (Distance: {result['distance']:.4f}):")
-            print(
-                f"  Source: {result['metadata'].get('source', 'N/A')}, Chunk Index: {result['metadata'].get('chunk_index', 'N/A')}"
-            )
-            print(f"  Document: {result['document']}\n")
+    rag_system = RAGSystem(chroma_persist_directory=args.db_path)
+
+    if args.command == "ingest":
+        file_path = Path(args.file_path)
+        if not file_path.exists():
+            print(f"Error: File not found at {file_path}")
+            return
+        rag_system.ingest(file_path, args.chunk_size, args.chunk_overlap)
+    elif args.command == "query":
+        results = rag_system.query(args.query_text, args.num_results)
+        if results:
+            print("\n--- Query Results ---")
+            for i, res in enumerate(results):
+                print(f"\nResult {i+1}:")
+                print(f"  Source: {res['metadata'].get('source', 'N/A')}")
+                print(f"  Chunk Index: {res['metadata'].get('chunk_index', 'N/A')}")
+                print(f"  Distance: {res['distance']:.4f}")
+                print(f"  Document: {res['document']}")
+        else:
+            print("No results found for your query.")
     else:
-        print("No results found.")
-
-    # Clean up the dummy file
-    dummy_file_path.unlink(missing_ok=True)
-    print(f"Cleaned up dummy document: {dummy_file_path}")
-
-    # Optional: Reset the vector store if you want to clear all data
-    # rag_system.reset_vector_store()
-    # print("Vector store has been reset.")
-
-    print("MCPRAG system finished.")
-
+        parser.print_help()
 
 if __name__ == "__main__":
     main()
