@@ -20,7 +20,7 @@ readme = "README.md"
 license = { text = "MIT" }
 
 [project.scripts]
-mcprag = "main:main"
+mcprag = "rag_mcp.main:main"
 
 [build-system]
 requires = ["pdm-backend"]
