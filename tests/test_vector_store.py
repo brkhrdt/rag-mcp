@@ -46,8 +46,9 @@ def test_add_documents_no_ids_or_metadatas(temp_chroma_db):
     """Tests adding documents without providing IDs or metadatas."""
     documents = ["doc A", "doc B"]
     embeddings = [[0.7, 0.8], [0.9, 1.0]]
+    metadatas = [None, None]
 
-    temp_chroma_db.add_documents(documents, embeddings)
+    temp_chroma_db.add_documents(documents, embeddings, metadatas)
     collection = temp_chroma_db.collection
     assert collection.count() == 2
 
@@ -64,11 +65,12 @@ def test_add_documents_mismatched_lengths(temp_chroma_db):
     """Tests adding documents with mismatched lengths of inputs."""
     documents = ["doc one", "doc two"]
     embeddings = [[0.1, 0.2]]
+    metadatas = [None, None]
     with pytest.raises(
         ValueError,
         match="Lengths of documents, embeddings, metadatas, and ids must match.",
     ):
-        temp_chroma_db.add_documents(documents, embeddings)
+        temp_chroma_db.add_documents(documents, embeddings, metadatas)
 
 
 def test_query(temp_chroma_db):
@@ -121,11 +123,12 @@ def test_reset(temp_chroma_db):
     """Tests resetting the vector store."""
     documents = ["test doc"]
     embeddings = [[0.1, 0.2]]
-    temp_chroma_db.add_documents(documents, embeddings)
+    metadatas = [None]
+    temp_chroma_db.add_documents(documents, embeddings, metadatas)
     assert temp_chroma_db.collection.count() == 1
 
     temp_chroma_db.reset()
     assert temp_chroma_db.collection.count() == 0
 
-    temp_chroma_db.add_documents(documents, embeddings)
+    temp_chroma_db.add_documents(documents, embeddings, metadatas)
     assert temp_chroma_db.collection.count() == 1

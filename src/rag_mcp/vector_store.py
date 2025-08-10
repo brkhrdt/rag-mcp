@@ -27,15 +27,12 @@ class VectorStore:
         self,
         documents: List[str],
         embeddings: List[Sequence[float]],
-        metadatas: List[Mapping[str, Optional[Union[str, int, float, bool]]]] = [],
+        metadatas: List[Mapping[str, Optional[Union[str, int, float, bool]]]],
         ids: Optional[List[str]] = None,
     ):
         if not ids:
             current_count = self.collection.count()
             ids = [f"doc_{current_count + i}" for i in range(len(documents))]
-
-        if metadatas is None:
-            metadatas = []
 
         if (
             len(documents) != len(embeddings)
@@ -54,7 +51,7 @@ class VectorStore:
         )
 
     def query(
-        self, query_embedding: List[float], num_results: int = 5
+        self, query_embedding: Sequence[float], num_results: int = 5
     ) -> List[Dict[str, Any]]:
         results = self.collection.query(
             query_embeddings=[query_embedding],
