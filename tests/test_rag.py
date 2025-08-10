@@ -144,7 +144,7 @@ def test_reset_vector_store(rag_system_temp, temp_ingest_file):
     assert len(query_results_after_reset) == 0
 
 
-def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, capsys):
+def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caplog):
     """
     Tests that a warning is issued and chunk_size is adjusted when it exceeds
     the embedding model's max_input_tokens.
@@ -152,19 +152,25 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     file_path, content = temp_ingest_file
 
     large_chunk_size = 2000
+
+    # Set the logging level to WARNING to ensure the message is captured
+    import logging
+
+    caplog.set_level(logging.WARNING)
+
     rag_system_temp.ingest_file(
         file_path, chunk_size=large_chunk_size, chunk_overlap=50
     )
 
-    captured = capsys.readouterr()
+    expected_warning_message_part1 = f"Requested chunk_size ({large_chunk_size}) exceeds embedding model's max input tokens ({rag_system_temp.embedding_model.max_input_tokens})."
+    expected_warning_message_part2 = f"Using effective_chunk_size of {rag_system_temp.embedding_model.max_input_tokens}."
 
-    assert (
-        f"Warning: Requested chunk_size ({large_chunk_size}) exceeds embedding model's max input tokens ({rag_system_temp.embedding_model.max_input_tokens})."
-        in captured.out
+    # Check if the warning message is present in the captured logs
+    assert any(
+        expected_warning_message_part1 in record.message for record in caplog.records
     )
-    assert (
-        f"Using effective_chunk_size of {rag_system_temp.embedding_model.max_input_tokens}."
-        in captured.out
+    assert any(
+        expected_warning_message_part2 in record.message for record in caplog.records
     )
 
     query_results = rag_system_temp.query("fox jumps", num_results=1)
