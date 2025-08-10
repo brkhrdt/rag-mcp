@@ -1,0 +1,2 @@
+- Always use types
+- Do not add or remove comments, but you may modify existing comments if necessary.
