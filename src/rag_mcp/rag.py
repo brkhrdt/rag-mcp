@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import datetime  # Import datetime
 
 from rag_mcp.document_processor import DocumentProcessor
 from rag_mcp.embedding_model import EmbeddingModel
@@ -27,6 +28,7 @@ class RAG:
         source_name: str,
         chunk_size: int,
         chunk_overlap: int,
+        tags: Optional[List[str]] = None,  # Add tags parameter
     ):
         """Helper method to process text, chunk, embed, and add to vector store."""
         if not text.strip():
@@ -54,9 +56,18 @@ class RAG:
 
         embeddings = self.embedding_model.embed(chunks)
 
-        metadatas = [
-            {"source": source_name, "chunk_index": i} for i in range(len(chunks))
-        ]
+        # Prepare metadata with source, chunk_index, current timestamp, and optional tags
+        current_time = datetime.datetime.now().isoformat()
+        metadatas = []
+        for i in range(len(chunks)):
+            metadata = {
+                "source": source_name,
+                "chunk_index": i,
+                "timestamp": current_time,  # Add timestamp
+            }
+            if tags:  # Add tags if provided, converting list to comma-separated string
+                metadata["tags"] = ",".join(tags)
+            metadatas.append(metadata)
 
         self.vector_store.add_documents(chunks, embeddings, metadatas)
         print(f"Ingested {len(chunks)} chunks from {source_name}")
@@ -67,11 +78,12 @@ class RAG:
         chunk_size: int = 512,
         chunk_overlap: int = 50,
         source_name: Optional[str] = None,
+        tags: Optional[List[str]] = None,  # Add tags parameter
     ):
         """Ingest a text string into the RAG system."""
         ingested_source_name = source_name if source_name else "string_input"
         self._process_and_ingest(
-            text_content, ingested_source_name, chunk_size, chunk_overlap
+            text_content, ingested_source_name, chunk_size, chunk_overlap, tags
         )
 
     def ingest_file(
@@ -79,6 +91,7 @@ class RAG:
         file_path: Path,
         chunk_size: int = 512,
         chunk_overlap: int = 50,
+        tags: Optional[List[str]] = None,  # Add tags parameter
     ):
         """Ingest a document file into the RAG system."""
         if not file_path.exists():
@@ -88,7 +101,7 @@ class RAG:
             text = self.document_processor.extract_text(file_path)
             ingested_source_name = str(file_path)
             self._process_and_ingest(
-                text, ingested_source_name, chunk_size, chunk_overlap
+                text, ingested_source_name, chunk_size, chunk_overlap, tags
             )
         except ValueError as e:
             print(f"Error ingesting file {file_path}: {e}")

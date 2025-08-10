@@ -77,3 +77,29 @@ class VectorStore:
             name=self.collection.name,
         )
         print(f"Collection '{self.collection.name}' has been reset.")
+
+    def print_all_documents_table(self):
+        """
+        Prints a table of all records in the collection for debugging purposes.
+        The document content is truncated to the first 20 characters.
+        """
+        all_records = self.collection.get(include=["documents", "metadatas"])
+
+        if not all_records or not all_records["ids"]:
+            print("No documents found in the collection.")
+            return
+
+        print("\n--- All Documents in Collection ---")
+        print(f"{'ID':<10} | {'Document (first 20 chars)':<25} | {'Metadata'}")
+        print("-" * 70)
+
+        for i in range(len(all_records["ids"])):
+            doc_id = all_records["ids"][i]
+            document = all_records["documents"][i]
+            metadata = all_records["metadatas"][i]
+
+            truncated_document = (
+                document[:20] + "..." if len(document) > 20 else document
+            )
+            print(f"{doc_id:<10} | {truncated_document:<25} | {metadata}")
+        print("-----------------------------------\n")

@@ -137,3 +137,39 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     query_results = rag_system_temp.query("fox jumps", num_results=1)
     assert len(query_results) > 0
     assert "fox jumps over the lazy dog" in query_results[0]["document"]
+
+
+def test_ingest_with_tags(rag_system_temp, temp_ingest_file):
+    """Tests that documents are ingested with correct tags."""
+    test_string = "This document is about finance and technology."
+    test_tags = ["finance", "tech", "report"]
+    source_name = "finance_tech_doc"
+
+    rag_system_temp.ingest_string(
+        test_string,
+        chunk_size=10,
+        chunk_overlap=2,
+        source_name=source_name,
+        tags=test_tags,
+    )
+
+    query_results = rag_system_temp.query("finance report", num_results=1)
+    assert len(query_results) > 0
+    assert query_results[0]["metadata"]["source"] == source_name
+    assert "tags" in query_results[0]["metadata"]
+    # Split the tags string back into a list for comparison
+    retrieved_tags = query_results[0]["metadata"]["tags"].split(",")
+    assert sorted(retrieved_tags) == sorted(test_tags)
+
+    # Test file ingestion with tags
+    file_path, content = temp_ingest_file
+    file_tags = ["document", "test"]
+    rag_system_temp.ingest_file(file_path, tags=file_tags)
+
+    query_results_file = rag_system_temp.query("quick brown fox", num_results=1)
+    assert len(query_results_file) > 0
+    assert query_results_file[0]["metadata"]["source"] == str(file_path)
+    assert "tags" in query_results_file[0]["metadata"]
+    # Split the tags string back into a list for comparison
+    retrieved_file_tags = query_results_file[0]["metadata"]["tags"].split(",")
+    assert sorted(retrieved_file_tags) == sorted(file_tags)
