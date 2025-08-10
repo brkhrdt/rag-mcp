@@ -1,8 +1,11 @@
 import argparse
 from pathlib import Path
-import glob  # Import the glob module
+import glob
+import logging
 from rag_mcp.rag import RAG
 
+# Get a logger for this module
+logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -25,7 +28,7 @@ def main():
     ingest_file_parser.add_argument(
         "file_paths",
         type=str,
-        nargs="+",  # Change to nargs='+' to accept multiple file paths/patterns
+        nargs="+",
         help="Path(s) to the document file(s) to ingest (supports glob patterns)",
     )
     ingest_file_parser.add_argument(
@@ -39,7 +42,7 @@ def main():
         default=50,
         help="Token overlap between chunks (default: 50)",
     )
-    ingest_file_parser.add_argument(  # Add tags argument for ingest-file
+    ingest_file_parser.add_argument(
         "--tags",
         type=str,
         nargs="*",
@@ -70,7 +73,7 @@ def main():
         default=None,
         help="Optional name for the source when ingesting a string (default: 'string_input')",
     )
-    ingest_text_parser.add_argument(  # Add tags argument for ingest-text
+    ingest_text_parser.add_argument(
         "--tags",
         type=str,
         nargs="*",
@@ -94,46 +97,44 @@ def main():
     rag_system = RAG(chroma_persist_directory=args.db_path)
 
     if args.command == "ingest-file":
-        # Iterate over each provided path/pattern
         for pattern in args.file_paths:
-            # Expand glob patterns
             for file_path_str in glob.glob(pattern):
                 file_path = Path(file_path_str)
-                if file_path.is_file():  # Ensure it's a file and not a directory
-                    print(f"Ingesting file: {file_path}")
+                if file_path.is_file():
+                    logger.info(f"Ingesting file: {file_path}")
                     rag_system.ingest_file(
                         file_path,
                         chunk_size=args.chunk_size,
                         chunk_overlap=args.chunk_overlap,
-                        tags=args.tags,  # Pass tags
+                        tags=args.tags,
                     )
                 else:
-                    print(f"Skipping non-file path: {file_path}")
+                    logger.warning(f"Skipping non-file path: {file_path}")
     elif args.command == "ingest-text":
         rag_system.ingest_string(
             args.text_content,
             chunk_size=args.chunk_size,
             chunk_overlap=args.chunk_overlap,
             source_name=args.source_name,
-            tags=args.tags,  # Pass tags
+            tags=args.tags,
         )
     elif args.command == "query":
         results = rag_system.query(args.query_text, args.num_results)
         if results:
-            print("\n--- Query Results ---")
+            logger.info("\n--- Query Results ---")
             for i, res in enumerate(results):
-                print(f"\nResult {i + 1}:")
-                print(f"  Source: {res['metadata'].get('source', 'N/A')}")
-                print(f"  Chunk Index: {res['metadata'].get('chunk_index', 'N/A')}")
-                print(
+                logger.info(f"\nResult {i + 1}:")
+                logger.info(f"  Source: {res['metadata'].get('source', 'N/A')}")
+                logger.info(f"  Chunk Index: {res['metadata'].get('chunk_index', 'N/A')}")
+                logger.info(
                     f"  Timestamp: {res['metadata'].get('timestamp', 'N/A')}"
-                )  # Print timestamp
-                if "tags" in res["metadata"]:  # Print tags if present
-                    print(f"  Tags: {', '.join(res['metadata']['tags'])}")
-                print(f"  Distance: {res['distance']:.4f}")
-                print(f"  Document: {res['document']}")
+                )
+                if "tags" in res["metadata"]:
+                    logger.info(f"  Tags: {', '.join(res['metadata']['tags'])}")
+                logger.info(f"  Distance: {res['distance']:.4f}")
+                logger.info(f"  Document: {res['document']}")
         else:
-            print("No results found for your query.")
+            logger.info("No results found for your query.")
 
 
 if __name__ == "__main__":

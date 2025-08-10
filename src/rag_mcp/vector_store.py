@@ -1,9 +1,11 @@
 import chromadb
 from chromadb.config import Settings
-
+import logging
 
 from typing import List, Dict, Any, Optional
 
+# Get a logger for this module
+logger = logging.getLogger(__name__)
 
 class VectorStore:
     def __init__(
@@ -27,7 +29,6 @@ class VectorStore:
         ids: Optional[List[str]] = None,
     ):
         if not ids:
-            # Get the current count of documents in the collection
             current_count = self.collection.count()
             ids = [f"doc_{current_count + i}" for i in range(len(documents))]
 
@@ -46,7 +47,7 @@ class VectorStore:
         self.collection.add(
             documents=documents, embeddings=embeddings, metadatas=metadatas, ids=ids
         )
-        print(
+        logger.info(
             f"Added {len(documents)} documents to ChromaDB collection '{self.collection.name}'."
         )
 
@@ -78,7 +79,7 @@ class VectorStore:
         self.collection = self.client.get_or_create_collection(
             name=self.collection.name,
         )
-        print(f"Collection '{self.collection.name}' has been reset.")
+        logger.info(f"Collection '{self.collection.name}' has been reset.")
 
     def print_all_documents_table(self):
         """
@@ -88,12 +89,12 @@ class VectorStore:
         all_records = self.collection.get(include=["documents", "metadatas"])
 
         if not all_records or not all_records["ids"]:
-            print("No documents found in the collection.")
+            logger.info("No documents found in the collection.")
             return
 
-        print("\n--- All Documents in Collection ---")
-        print(f"{'ID':<10} | {'Document (first 20 chars)':<25} | {'Metadata'}")
-        print("-" * 70)
+        logger.info("\n--- All Documents in Collection ---")
+        logger.info(f"{'ID':<10} | {'Document (first 20 chars)':<25} | {'Metadata'}")
+        logger.info("-" * 70)
 
         for i in range(len(all_records["ids"])):
             doc_id = all_records["ids"][i]
@@ -103,5 +104,5 @@ class VectorStore:
             truncated_document = (
                 document[:20] + "..." if len(document) > 20 else document
             )
-            print(f"{doc_id:<10} | {truncated_document:<25} | {metadata}")
-        print("-----------------------------------\n")
+            logger.info(f"{doc_id:<10} | {truncated_document:<25} | {metadata}")
+        logger.info("-----------------------------------\n")

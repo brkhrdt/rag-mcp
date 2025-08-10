@@ -1,12 +1,15 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import datetime
+import logging
 
 from rag_mcp.document_processor import DocumentProcessor
 from rag_mcp.embedding_model import EmbeddingModel
 from rag_mcp.text_chunker import TextChunker
 from rag_mcp.vector_store import VectorStore
 
+# Get a logger for this module
+logger = logging.getLogger(__name__)
 
 class RAG:
     def __init__(
@@ -33,8 +36,8 @@ class RAG:
     ):
         """Helper method to process text, chunk, embed, and add to vector store."""
         if not text.strip():
-            print(
-                f"Warning: Provided text content for '{source_name}' is empty. Skipping ingestion."
+            logger.warning(
+                f"Provided text content for '{source_name}' is empty. Skipping ingestion."
             )
             return
 
@@ -42,8 +45,8 @@ class RAG:
         effective_chunk_size = min(chunk_size, model_max_tokens)
 
         if effective_chunk_size < chunk_size:
-            print(
-                f"Warning: Requested chunk_size ({chunk_size}) exceeds embedding model's max input tokens ({model_max_tokens}). "
+            logger.warning(
+                f"Requested chunk_size ({chunk_size}) exceeds embedding model's max input tokens ({model_max_tokens}). "
                 f"Using effective_chunk_size of {effective_chunk_size}."
             )
 
@@ -52,7 +55,7 @@ class RAG:
         )
 
         if not chunks:
-            print(f"No chunks generated from {source_name}. Skipping ingestion.")
+            logger.warning(f"No chunks generated from {source_name}. Skipping ingestion.")
             return
 
         embeddings = self.embedding_model.embed(chunks)
@@ -70,7 +73,7 @@ class RAG:
             metadatas.append(metadata)
 
         self.vector_store.add_documents(chunks, embeddings, metadatas)
-        print(f"Ingested {len(chunks)} chunks from {source_name}")
+        logger.info(f"Ingested {len(chunks)} chunks from {source_name}")
 
     def ingest_string(
         self,
@@ -103,7 +106,7 @@ class RAG:
     ):
         """Ingest a document file into the RAG system."""
         if not file_path.exists():
-            print(f"Error: File not found at {file_path}")
+            logger.error(f"Error: File not found at {file_path}")
             return
         try:
             text = self.document_processor.extract_text(file_path)
@@ -120,7 +123,7 @@ class RAG:
                 tags,
             )
         except ValueError as e:
-            print(f"Error ingesting file {file_path}: {e}")
+            logger.error(f"Error ingesting file {file_path}: {e}")
             return
 
     def query(self, query_text: str, num_results: int = 5) -> List[Dict[str, Any]]:
@@ -130,4 +133,4 @@ class RAG:
 
     def reset_vector_store(self):
         self.vector_store.reset()
-        print("Vector store has been reset.")
+        logger.info("Vector store has been reset.")
