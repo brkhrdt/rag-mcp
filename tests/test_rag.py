@@ -50,7 +50,9 @@ def test_ingest_string_input(rag_system_temp):
     """Tests the ingestion process with a direct string input."""
     test_string = "This is a test string that will be ingested directly. It contains some unique words."
     source_name = "my_custom_string_source"
-    rag_system_temp.ingest(test_string, chunk_size=10, chunk_overlap=2, source_name=source_name)
+    rag_system_temp.ingest(
+        test_string, chunk_size=10, chunk_overlap=2, source_name=source_name
+    )
 
     query_results = rag_system_temp.query("unique words", num_results=1)
     assert len(query_results) > 0
@@ -130,4 +132,3 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     query_results = rag_system_temp.query("fox jumps", num_results=1)
     assert len(query_results) > 0
     assert "fox jumps over the lazy dog" in query_results[0]["document"]
-
