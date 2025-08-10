@@ -1,5 +1,5 @@
 [project]
-name = "mcprag"
+name = "ragmcp"
 version = "0.1.0"
 description = "A Retrieval Augmented Generation (RAG) system focused on retrieval."
 authors = [
@@ -21,7 +21,7 @@ readme = "README.md"
 license = { text = "MIT" }
 
 [project.scripts]
-mcprag = "rag_mcp.main:main"
+ragmcp = "rag_mcp.main:main"
 
 [build-system]
 requires = ["pdm-backend"]
