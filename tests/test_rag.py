@@ -46,6 +46,26 @@ def test_ingest_document(rag_system_temp, temp_ingest_file):
     assert "chunk_index" in query_results[0]["metadata"]
 
 
+def test_ingest_string_input(rag_system_temp):
+    """Tests the ingestion process with a direct string input."""
+    test_string = "This is a test string that will be ingested directly. It contains some unique words."
+    source_name = "my_custom_string_source"
+    rag_system_temp.ingest(test_string, chunk_size=10, chunk_overlap=2, source_name=source_name)
+
+    query_results = rag_system_temp.query("unique words", num_results=1)
+    assert len(query_results) > 0
+    assert "unique words" in query_results[0]["document"]
+    assert query_results[0]["metadata"]["source"] == source_name
+    assert "chunk_index" in query_results[0]["metadata"]
+
+    # Test with default source name
+    test_string_default = "Another string for testing default source name."
+    rag_system_temp.ingest(test_string_default, chunk_size=10, chunk_overlap=2)
+    query_results_default = rag_system_temp.query("default source", num_results=1)
+    assert len(query_results_default) > 0
+    assert query_results_default[0]["metadata"]["source"] == "string_input"
+
+
 def test_query_system(rag_system_temp, temp_ingest_file):
     """Tests the query functionality of the RAG."""
     file_path, content = temp_ingest_file
@@ -110,3 +130,4 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     query_results = rag_system_temp.query("fox jumps", num_results=1)
     assert len(query_results) > 0
     assert "fox jumps over the lazy dog" in query_results[0]["document"]
+
