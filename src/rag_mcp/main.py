@@ -124,16 +124,14 @@ def main():
         if results:
             logger.info("\n--- Query Results ---")
             for i, res in enumerate(results):
-                logger.info(f"\nResult {i + 1}:")
-                logger.info(f"  Source: {res['metadata'].get('source', 'N/A')}")
-                logger.info(
-                    f"  Chunk Index: {res['metadata'].get('chunk_index', 'N/A')}"
-                )
-                logger.info(f"  Timestamp: {res['metadata'].get('timestamp', 'N/A')}")
+                print(f"\nResult {i + 1}:")
+                print(f"Source: {res['metadata'].get('source', 'N/A')}")
+                print(f"Chunk Index: {res['metadata'].get('chunk_index', 'N/A')}")
+                print(f"Timestamp: {res['metadata'].get('timestamp', 'N/A')}")
                 if "tags" in res["metadata"]:
-                    logger.info(f"  Tags: {', '.join(res['metadata']['tags'])}")
-                logger.info(f"  Distance: {res['distance']:.4f}")
-                logger.info(f"  Document: {res['document']}")
+                    print(f"Tags: {', '.join(res['metadata']['tags'])}")
+                print(f"Distance: {res['distance']:.4f}")
+                print(f"Document:\n{res['document']}")
         else:
             logger.info("No results found for your query.")
 
