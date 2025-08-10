@@ -3,7 +3,7 @@ from chromadb.config import Settings
 
 import logging
 
-from typing import List, Dict, Any, Optional, Union, Mapping
+from typing import List, Dict, Any, Optional, Sequence, Union, Mapping
 
 # Get a logger for this module
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class VectorStore:
     def add_documents(
         self,
         documents: List[str],
-        embeddings: List[List[float]],
+        embeddings: List[Sequence[float]],
         metadatas: List[Mapping[str, Optional[Union[str, int, float, bool]]]] = [],
         ids: Optional[List[str]] = None,
     ):
