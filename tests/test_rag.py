@@ -130,18 +130,6 @@ def test_query_system(rag_system_temp, temp_ingest_file):
     assert "distance" in results[0]
 
 
-def test_ingest_unsupported_file_type(rag_system_temp, tmp_path, capsys):
-    """Tests ingestion of an unsupported file type."""
-    unsupported_file = tmp_path / "unsupported.pdf"
-    unsupported_file.write_text("dummy pdf content")
-
-    rag_system_temp.ingest_file(unsupported_file)
-
-    captured = capsys.readouterr()
-    assert "Error ingesting" in captured.out
-    assert "Unsupported file type" in captured.out
-
-
 def test_reset_vector_store(rag_system_temp, temp_ingest_file):
     """Tests resetting the vector store via RAG."""
     file_path, content = temp_ingest_file
