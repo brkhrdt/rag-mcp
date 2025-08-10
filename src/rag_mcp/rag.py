@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence, cast, Mapping
 import datetime
 import logging
 
@@ -61,7 +61,9 @@ class RAG:
             )
             return
 
-        embeddings = self.embedding_model.embed(chunks)
+        embeddings: List[Sequence[float]] = cast(
+            List[Sequence[float]], self.embedding_model.embed(chunks)
+        )
 
         current_time = datetime.datetime.now().isoformat()
         metadatas = []
@@ -75,7 +77,9 @@ class RAG:
                 metadata["tags"] = ",".join(tags)
             metadatas.append(metadata)
 
-        self.vector_store.add_documents(chunks, embeddings, metadatas)
+        self.vector_store.add_documents(
+            chunks, embeddings, cast(List[Mapping], metadatas)
+        )
         logger.info(f"Ingested {len(chunks)} chunks from {source_name}")
 
     def ingest_string(
@@ -130,7 +134,9 @@ class RAG:
             return
 
     def query(self, query_text: str, num_results: int = 5) -> List[Dict[str, Any]]:
-        query_embedding = self.embedding_model.embed(query_text)
+        query_embedding: Sequence[float] = cast(
+            Sequence[float], self.embedding_model.embed(query_text)
+        )
         results = self.vector_store.query(query_embedding, num_results)
         return results
 
