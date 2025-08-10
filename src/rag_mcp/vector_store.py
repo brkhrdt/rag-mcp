@@ -1,8 +1,9 @@
 import chromadb
 from chromadb.config import Settings
+
 import logging
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union, Mapping
 
 # Get a logger for this module
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ class VectorStore:
         self,
         documents: List[str],
         embeddings: List[List[float]],
-        metadatas: Optional[List[Dict[str, Any]]] = None,
+        metadatas: List[Mapping[str, Optional[Union[str, int, float, bool]]]] = [],
         ids: Optional[List[str]] = None,
     ):
         if not ids:
@@ -34,7 +35,7 @@ class VectorStore:
             ids = [f"doc_{current_count + i}" for i in range(len(documents))]
 
         if metadatas is None:
-            metadatas = [None] * len(documents)
+            metadatas = []
 
         if (
             len(documents) != len(embeddings)
