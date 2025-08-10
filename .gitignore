@@ -5,14 +5,15 @@ __pycache__/
 *.pyd
 .Python
 .venv
+uv.lock
 
 # IDEs
 .idea/
 .vscode/
+.aider*
 
 # PDM
 .pdm-build/
 
 # ChromaDB
 chroma_db/
-.aider*
