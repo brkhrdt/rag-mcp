@@ -135,4 +135,3 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     query_results = rag_system_temp.query("fox jumps", num_results=1)
     assert len(query_results) > 0
     assert "fox jumps over the lazy dog" in query_results[0]["document"]
-
