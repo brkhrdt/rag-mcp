@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+import glob  # Import the glob module
 from rag_mcp.rag import RAG
 
 
@@ -22,7 +23,10 @@ def main():
         "ingest-file", help="Ingest a document file into the RAG system"
     )
     ingest_file_parser.add_argument(
-        "file_path", type=str, help="Path to the document file to ingest"
+        "file_paths",
+        type=str,
+        nargs="+",  # Change to nargs='+' to accept multiple file paths/patterns
+        help="Path(s) to the document file(s) to ingest (supports glob patterns)",
     )
     ingest_file_parser.add_argument(
         "--chunk-size",
@@ -92,13 +96,21 @@ def main():
     rag_system = RAG(chroma_persist_directory=args.db_path)
 
     if args.command == "ingest-file":
-        file_path = Path(args.file_path)
-        rag_system.ingest_file(
-            file_path,
-            chunk_size=args.chunk_size,
-            chunk_overlap=args.chunk_overlap,
-            tags=args.tags,  # Pass tags
-        )
+        # Iterate over each provided path/pattern
+        for pattern in args.file_paths:
+            # Expand glob patterns
+            for file_path_str in glob.glob(pattern):
+                file_path = Path(file_path_str)
+                if file_path.is_file():  # Ensure it's a file and not a directory
+                    print(f"Ingesting file: {file_path}")
+                    rag_system.ingest_file(
+                        file_path,
+                        chunk_size=args.chunk_size,
+                        chunk_overlap=args.chunk_overlap,
+                        tags=args.tags,  # Pass tags
+                    )
+                else:
+                    print(f"Skipping non-file path: {file_path}")
     elif args.command == "ingest-text":
         rag_system.ingest_string(
             args.text_content,
