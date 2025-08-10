@@ -27,7 +27,9 @@ class VectorStore:
         ids: Optional[List[str]] = None,
     ):
         if not ids:
-            ids = [f"doc_{i}" for i in range(len(documents))]
+            # Get the current count of documents in the collection
+            current_count = self.collection.count()
+            ids = [f"doc_{current_count + i}" for i in range(len(documents))]
 
         if metadatas is None:
             metadatas = [None] * len(documents)
