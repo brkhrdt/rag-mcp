@@ -31,8 +31,7 @@ def main():
     ingest_file_parser.add_argument(
         "--chunk-size",
         type=int,
-        default=512,
-        help="Maximum token size for each text chunk (default: 512)",
+        help="Maximum token size for each text chunk",
     )
     ingest_file_parser.add_argument(
         "--chunk-overlap",
@@ -57,8 +56,7 @@ def main():
     ingest_text_parser.add_argument(
         "--chunk-size",
         type=int,
-        default=512,
-        help="Maximum token size for each text chunk (default: 512)",
+        help="Maximum token size for each text chunk",
     )
     ingest_text_parser.add_argument(
         "--chunk-overlap",
