@@ -62,13 +62,16 @@ class RAG:
         )
 
         if not chunks:
-            print(f"No chunks generated from {ingested_source_name}. Skipping ingestion.")
+            print(
+                f"No chunks generated from {ingested_source_name}. Skipping ingestion."
+            )
             return
 
         embeddings = self.embedding_model.embed(chunks)
 
         metadatas = [
-            {"source": ingested_source_name, "chunk_index": i} for i in range(len(chunks))
+            {"source": ingested_source_name, "chunk_index": i}
+            for i in range(len(chunks))
         ]
 
         self.vector_store.add_documents(chunks, embeddings, metadatas)
