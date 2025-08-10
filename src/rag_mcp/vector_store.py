@@ -7,6 +7,7 @@ from typing import List, Dict, Any, Optional
 # Get a logger for this module
 logger = logging.getLogger(__name__)
 
+
 class VectorStore:
     def __init__(
         self,

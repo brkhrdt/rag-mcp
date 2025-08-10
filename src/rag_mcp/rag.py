@@ -11,6 +11,7 @@ from rag_mcp.vector_store import VectorStore
 # Get a logger for this module
 logger = logging.getLogger(__name__)
 
+
 class RAG:
     def __init__(
         self,
@@ -55,7 +56,9 @@ class RAG:
         )
 
         if not chunks:
-            logger.warning(f"No chunks generated from {source_name}. Skipping ingestion.")
+            logger.warning(
+                f"No chunks generated from {source_name}. Skipping ingestion."
+            )
             return
 
         embeddings = self.embedding_model.embed(chunks)

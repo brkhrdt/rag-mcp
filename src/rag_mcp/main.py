@@ -7,6 +7,7 @@ from rag_mcp.rag import RAG
 # Get a logger for this module
 logger = logging.getLogger(__name__)
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="RAG System CLI for document ingestion and querying."
@@ -125,10 +126,10 @@ def main():
             for i, res in enumerate(results):
                 logger.info(f"\nResult {i + 1}:")
                 logger.info(f"  Source: {res['metadata'].get('source', 'N/A')}")
-                logger.info(f"  Chunk Index: {res['metadata'].get('chunk_index', 'N/A')}")
                 logger.info(
-                    f"  Timestamp: {res['metadata'].get('timestamp', 'N/A')}"
+                    f"  Chunk Index: {res['metadata'].get('chunk_index', 'N/A')}"
                 )
+                logger.info(f"  Timestamp: {res['metadata'].get('timestamp', 'N/A')}")
                 if "tags" in res["metadata"]:
                     logger.info(f"  Tags: {', '.join(res['metadata']['tags'])}")
                 logger.info(f"  Distance: {res['distance']:.4f}")
