@@ -60,6 +60,9 @@ def test_ingest_string_input(rag_system_temp):
     assert query_results[0]["metadata"]["source"] == source_name
     assert "chunk_index" in query_results[0]["metadata"]
 
+    # Reset the vector store to ensure a clean state for the next test case
+    rag_system_temp.reset_vector_store()
+
     # Test with default source name
     test_string_default = "Another string for testing default source name."
     rag_system_temp.ingest(test_string_default, chunk_size=10, chunk_overlap=2)
@@ -132,3 +135,4 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, caps
     query_results = rag_system_temp.query("fox jumps", num_results=1)
     assert len(query_results) > 0
     assert "fox jumps over the lazy dog" in query_results[0]["document"]
+
