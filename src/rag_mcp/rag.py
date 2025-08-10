@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union, Optional
 
 from rag_mcp.document_processor import DocumentProcessor
 from rag_mcp.embedding_model import EmbeddingModel
@@ -21,15 +21,31 @@ class RAG:
             chroma_collection_name, chroma_persist_directory
         )
 
-    def ingest(self, file_path: Path, chunk_size: int = 512, chunk_overlap: int = 50):
-        if not file_path.exists():
-            print(f"Error: File not found at {file_path}")
-            return
-
-        try:
-            text = self.document_processor.extract_text(file_path)
-        except ValueError as e:
-            print(f"Error ingesting file {file_path}: {e}")
+    def ingest(
+        self,
+        content_source: Union[Path, str],
+        chunk_size: int = 512,
+        chunk_overlap: int = 50,
+        source_name: Optional[str] = None,
+    ):
+        if isinstance(content_source, Path):
+            if not content_source.exists():
+                print(f"Error: File not found at {content_source}")
+                return
+            try:
+                text = self.document_processor.extract_text(content_source)
+                ingested_source_name = str(content_source)
+            except ValueError as e:
+                print(f"Error ingesting file {content_source}: {e}")
+                return
+        elif isinstance(content_source, str):
+            text = content_source
+            ingested_source_name = source_name if source_name else "string_input"
+            if not text.strip():
+                print("Warning: Provided text content is empty. Skipping ingestion.")
+                return
+        else:
+            print(f"Error: Unsupported content_source type: {type(content_source)}")
             return
 
         model_max_tokens = self.embedding_model.max_input_tokens
@@ -46,17 +62,17 @@ class RAG:
         )
 
         if not chunks:
-            print(f"No chunks generated from {file_path}. Skipping ingestion.")
+            print(f"No chunks generated from {ingested_source_name}. Skipping ingestion.")
             return
 
         embeddings = self.embedding_model.embed(chunks)
 
         metadatas = [
-            {"source": str(file_path), "chunk_index": i} for i in range(len(chunks))
+            {"source": ingested_source_name, "chunk_index": i} for i in range(len(chunks))
         ]
 
         self.vector_store.add_documents(chunks, embeddings, metadatas)
-        print(f"Ingested {len(chunks)} chunks from {file_path}")
+        print(f"Ingested {len(chunks)} chunks from {ingested_source_name}")
 
     def query(self, query_text: str, num_results: int = 5) -> List[Dict[str, Any]]:
         query_embedding = self.embedding_model.embed(query_text)
