@@ -17,24 +17,50 @@ def main():
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # Ingest command
-    ingest_parser = subparsers.add_parser(
-        "ingest", help="Ingest a document into the RAG system"
+    # Ingest File command
+    ingest_file_parser = subparsers.add_parser(
+        "ingest-file", help="Ingest a document file into the RAG system"
     )
-    ingest_parser.add_argument(
+    ingest_file_parser.add_argument(
         "file_path", type=str, help="Path to the document file to ingest"
     )
-    ingest_parser.add_argument(
+    ingest_file_parser.add_argument(
         "--chunk-size",
         type=int,
         default=512,
         help="Maximum token size for each text chunk (default: 512)",
     )
-    ingest_parser.add_argument(
+    ingest_file_parser.add_argument(
         "--chunk-overlap",
         type=int,
         default=50,
         help="Token overlap between chunks (default: 50)",
+    )
+
+    # Ingest Text command
+    ingest_text_parser = subparsers.add_parser(
+        "ingest-text", help="Ingest a text string directly into the RAG system"
+    )
+    ingest_text_parser.add_argument(
+        "text_content", type=str, help="The text string to ingest"
+    )
+    ingest_text_parser.add_argument(
+        "--chunk-size",
+        type=int,
+        default=512,
+        help="Maximum token size for each text chunk (default: 512)",
+    )
+    ingest_text_parser.add_argument(
+        "--chunk-overlap",
+        type=int,
+        default=50,
+        help="Token overlap between chunks (default: 50)",
+    )
+    ingest_text_parser.add_argument(
+        "--source-name",
+        type=str,
+        default=None,
+        help="Optional name for the source when ingesting a string (default: 'string_input')",
     )
 
     # Query command
@@ -53,12 +79,18 @@ def main():
 
     rag_system = RAG(chroma_persist_directory=args.db_path)
 
-    if args.command == "ingest":
+    if args.command == "ingest-file":
         file_path = Path(args.file_path)
-        if not file_path.exists():
-            print(f"Error: File not found at {file_path}")
-            return
-        rag_system.ingest(file_path, args.chunk_size, args.chunk_overlap)
+        rag_system.ingest_file(
+            file_path, chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap
+        )
+    elif args.command == "ingest-text":
+        rag_system.ingest_string(
+            args.text_content,
+            chunk_size=args.chunk_size,
+            chunk_overlap=args.chunk_overlap,
+            source_name=args.source_name,
+        )
     elif args.command == "query":
         results = rag_system.query(args.query_text, args.num_results)
         if results:

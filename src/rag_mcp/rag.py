@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Optional
 
 from rag_mcp.document_processor import DocumentProcessor
 from rag_mcp.embedding_model import EmbeddingModel
@@ -21,31 +21,18 @@ class RAG:
             chroma_collection_name, chroma_persist_directory
         )
 
-    def ingest(
+    def _process_and_ingest(
         self,
-        content: Union[Path, str],
-        chunk_size: int = 512,
-        chunk_overlap: int = 50,
-        source_name: Optional[str] = None,
+        text: str,
+        source_name: str,
+        chunk_size: int,
+        chunk_overlap: int,
     ):
-        if isinstance(content, Path):
-            if not content.exists():
-                print(f"Error: File not found at {content}")
-                return
-            try:
-                text = self.document_processor.extract_text(content)
-                ingested_source_name = str(content)
-            except ValueError as e:
-                print(f"Error ingesting file {content}: {e}")
-                return
-        elif isinstance(content, str):
-            text = content
-            ingested_source_name = source_name if source_name else "string_input"
-            if not text.strip():
-                print("Warning: Provided text content is empty. Skipping ingestion.")
-                return
-        else:
-            print(f"Error: Unsupported content_source type: {type(content)}")
+        """Helper method to process text, chunk, embed, and add to vector store."""
+        if not text.strip():
+            print(
+                f"Warning: Provided text content for '{source_name}' is empty. Skipping ingestion."
+            )
             return
 
         model_max_tokens = self.embedding_model.max_input_tokens
@@ -62,20 +49,50 @@ class RAG:
         )
 
         if not chunks:
-            print(
-                f"No chunks generated from {ingested_source_name}. Skipping ingestion."
-            )
+            print(f"No chunks generated from {source_name}. Skipping ingestion.")
             return
 
         embeddings = self.embedding_model.embed(chunks)
 
         metadatas = [
-            {"source": ingested_source_name, "chunk_index": i}
-            for i in range(len(chunks))
+            {"source": source_name, "chunk_index": i} for i in range(len(chunks))
         ]
 
         self.vector_store.add_documents(chunks, embeddings, metadatas)
-        print(f"Ingested {len(chunks)} chunks from {ingested_source_name}")
+        print(f"Ingested {len(chunks)} chunks from {source_name}")
+
+    def ingest_string(
+        self,
+        text_content: str,
+        chunk_size: int = 512,
+        chunk_overlap: int = 50,
+        source_name: Optional[str] = None,
+    ):
+        """Ingest a text string into the RAG system."""
+        ingested_source_name = source_name if source_name else "string_input"
+        self._process_and_ingest(
+            text_content, ingested_source_name, chunk_size, chunk_overlap
+        )
+
+    def ingest_file(
+        self,
+        file_path: Path,
+        chunk_size: int = 512,
+        chunk_overlap: int = 50,
+    ):
+        """Ingest a document file into the RAG system."""
+        if not file_path.exists():
+            print(f"Error: File not found at {file_path}")
+            return
+        try:
+            text = self.document_processor.extract_text(file_path)
+            ingested_source_name = str(file_path)
+            self._process_and_ingest(
+                text, ingested_source_name, chunk_size, chunk_overlap
+            )
+        except ValueError as e:
+            print(f"Error ingesting file {file_path}: {e}")
+            return
 
     def query(self, query_text: str, num_results: int = 5) -> List[Dict[str, Any]]:
         query_embedding = self.embedding_model.embed(query_text)
