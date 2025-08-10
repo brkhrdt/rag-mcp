@@ -46,6 +46,51 @@ def test_ingest_document(rag_system_temp, temp_ingest_file):
     assert "chunk_index" in query_results[0]["metadata"]
 
 
+def test_ingest_multiple_documents(rag_system_temp, tmp_path):
+    """Tests ingesting multiple documents and querying across them."""
+    content1 = "The first document talks about apples and oranges."
+    file_path1 = tmp_path / "doc1.txt"
+    file_path1.write_text(content1)
+
+    content2 = "The second document discusses bananas and grapes."
+    file_path2 = tmp_path / "doc2.txt"
+    file_path2.write_text(content2)
+
+    content3 = "The third document discusses lettuce."
+    file_path3 = tmp_path / "doc3.txt"
+    file_path3.write_text(content3)
+
+    rag_system_temp.ingest_file(file_path1, chunk_size=10, chunk_overlap=2)
+    rag_system_temp.ingest_file(file_path2, chunk_size=10, chunk_overlap=2)
+    rag_system_temp.ingest_file(file_path3, chunk_size=10, chunk_overlap=2)
+
+    # Query for content from the first document
+    query_results1 = rag_system_temp.query("apples", num_results=1)
+    assert len(query_results1) > 0
+    assert "apples and oranges" in query_results1[0]["document"]
+    assert query_results1[0]["metadata"]["source"] == str(file_path1)
+
+    # Query for content from the second document
+    query_results2 = rag_system_temp.query("bananas", num_results=1)
+    assert len(query_results2) > 0
+    assert "bananas and grapes" in query_results2[0]["document"]
+    assert query_results2[0]["metadata"]["source"] == str(file_path2)
+
+    # Query for content from the second document
+    query_results3 = rag_system_temp.query("vegetable", num_results=1)
+    assert len(query_results3) > 0
+    assert "lettuce" in query_results3[0]["document"]
+    assert query_results3[0]["metadata"]["source"] == str(file_path3)
+
+    # Query for content that might span or be related to both (if applicable, though not strictly tested here)
+    # For now, just ensure both types of content are retrievable
+    query_results_combined = rag_system_temp.query("fruits", num_results=2)
+    assert len(query_results_combined) == 2
+    sources = {r["metadata"]["source"] for r in query_results_combined}
+    assert str(file_path1) in sources
+    assert str(file_path2) in sources
+
+
 def test_ingest_string_input(rag_system_temp):
     """Tests the ingestion process with a direct string input."""
     test_string = "This is a test string that will be ingested directly. It contains some unique words."
