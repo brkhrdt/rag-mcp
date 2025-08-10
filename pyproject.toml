@@ -6,15 +6,15 @@ authors = [
     { name = "Your Name", email = "your.email@example.com" }, # TODO: Replace with your name and email
 ]
 dependencies = [
-    "chromadb~=0.4.22",
-    "posthog<6.0.0", # to fix posthog error in chromadb
-    "sentence-transformers~=2.2.2",
-    "pypdf~=3.17.4",
-    "python-docx~=1.1.0",
-    "tiktoken~=0.5.2",
-    "torch>=2.0.0", # Added for sentence-transformers GPU support
-    "numpy<2.0.0", # Pin numpy to avoid compatibility issues with chromadb
-    "huggingface-hub<0.23.0", # Pin huggingface-hub to avoid cached_download error with sentence-transformers 2.2.2
+    "chromadb",
+    "posthog",
+    "pypdf",
+    "python-docx",
+    "tiktoken",
+    "torch",
+    "numpy",
+    "huggingface-hub",
+    "sentence-transformers",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -42,6 +42,7 @@ python_functions = "test_*"
 
 [dependency-groups]
 dev = [
+    "mypy>=1.17.1",
     "pyright>=1.1.403",
     "pytest>=8.4.1",
 ]
