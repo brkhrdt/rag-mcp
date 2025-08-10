@@ -23,29 +23,29 @@ class RAG:
 
     def ingest(
         self,
-        content_source: Union[Path, str],
+        content: Union[Path, str],
         chunk_size: int = 512,
         chunk_overlap: int = 50,
         source_name: Optional[str] = None,
     ):
-        if isinstance(content_source, Path):
-            if not content_source.exists():
-                print(f"Error: File not found at {content_source}")
+        if isinstance(content, Path):
+            if not content.exists():
+                print(f"Error: File not found at {content}")
                 return
             try:
-                text = self.document_processor.extract_text(content_source)
-                ingested_source_name = str(content_source)
+                text = self.document_processor.extract_text(content)
+                ingested_source_name = str(content)
             except ValueError as e:
-                print(f"Error ingesting file {content_source}: {e}")
+                print(f"Error ingesting file {content}: {e}")
                 return
-        elif isinstance(content_source, str):
-            text = content_source
+        elif isinstance(content, str):
+            text = content
             ingested_source_name = source_name if source_name else "string_input"
             if not text.strip():
                 print("Warning: Provided text content is empty. Skipping ingestion.")
                 return
         else:
-            print(f"Error: Unsupported content_source type: {type(content_source)}")
+            print(f"Error: Unsupported content_source type: {type(content)}")
             return
 
         model_max_tokens = self.embedding_model.max_input_tokens
