@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import datetime  # Import datetime
+import datetime
 
 from rag_mcp.document_processor import DocumentProcessor
 from rag_mcp.embedding_model import EmbeddingModel
@@ -21,6 +21,7 @@ class RAG:
         self.vector_store = VectorStore(
             chroma_collection_name, chroma_persist_directory
         )
+        self.default_chunk_size = self.embedding_model.max_input_tokens
 
     def _process_and_ingest(
         self,
@@ -28,7 +29,7 @@ class RAG:
         source_name: str,
         chunk_size: int,
         chunk_overlap: int,
-        tags: Optional[List[str]] = None,  # Add tags parameter
+        tags: Optional[List[str]] = None,
     ):
         """Helper method to process text, chunk, embed, and add to vector store."""
         if not text.strip():
@@ -56,16 +57,15 @@ class RAG:
 
         embeddings = self.embedding_model.embed(chunks)
 
-        # Prepare metadata with source, chunk_index, current timestamp, and optional tags
         current_time = datetime.datetime.now().isoformat()
         metadatas = []
         for i in range(len(chunks)):
             metadata = {
                 "source": source_name,
                 "chunk_index": i,
-                "timestamp": current_time,  # Add timestamp
+                "timestamp": current_time,
             }
-            if tags:  # Add tags if provided, converting list to comma-separated string
+            if tags:
                 metadata["tags"] = ",".join(tags)
             metadatas.append(metadata)
 
@@ -75,23 +75,31 @@ class RAG:
     def ingest_string(
         self,
         text_content: str,
-        chunk_size: int = 512,
+        chunk_size: Optional[int] = None,
         chunk_overlap: int = 50,
         source_name: Optional[str] = None,
-        tags: Optional[List[str]] = None,  # Add tags parameter
+        tags: Optional[List[str]] = None,
     ):
         """Ingest a text string into the RAG system."""
         ingested_source_name = source_name if source_name else "string_input"
+
+        actual_chunk_size = (
+            chunk_size if chunk_size is not None else self.default_chunk_size
+        )
         self._process_and_ingest(
-            text_content, ingested_source_name, chunk_size, chunk_overlap, tags
+            text_content,
+            ingested_source_name,
+            actual_chunk_size,
+            chunk_overlap,
+            tags,
         )
 
     def ingest_file(
         self,
         file_path: Path,
-        chunk_size: int = 512,
+        chunk_size: Optional[int] = None,
         chunk_overlap: int = 50,
-        tags: Optional[List[str]] = None,  # Add tags parameter
+        tags: Optional[List[str]] = None,
     ):
         """Ingest a document file into the RAG system."""
         if not file_path.exists():
@@ -100,8 +108,16 @@ class RAG:
         try:
             text = self.document_processor.extract_text(file_path)
             ingested_source_name = str(file_path)
+
+            actual_chunk_size = (
+                chunk_size if chunk_size is not None else self.default_chunk_size
+            )
             self._process_and_ingest(
-                text, ingested_source_name, chunk_size, chunk_overlap, tags
+                text,
+                ingested_source_name,
+                actual_chunk_size,
+                chunk_overlap,
+                tags,
             )
         except ValueError as e:
             print(f"Error ingesting file {file_path}: {e}")
