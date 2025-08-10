@@ -61,7 +61,18 @@ class VectorStore:
 
         formatted_results = []
 
-        if results and results["documents"] and results["documents"][0]:
+        # Ensure all expected keys exist and their first elements are not None
+        if (
+            results
+            and results.get("documents")
+            and results.get("metadatas")
+            and results.get("distances")
+            and results["documents"]
+            and results["metadatas"]
+            and results["distances"]
+        ):
+            # Iterate based on the length of the documents list, as it's the primary data
+            # and assume metadatas and distances will have corresponding entries.
             for i in range(len(results["documents"][0])):
                 formatted_results.append(
                     {
@@ -87,7 +98,12 @@ class VectorStore:
         """
         all_records = self.collection.get(include=["documents", "metadatas"])
 
-        if not all_records or not all_records["ids"]:
+        if (
+            not all_records
+            or not all_records.get("ids")
+            or not all_records.get("documents")
+            or not all_records.get("metadatas")
+        ):
             logger.info("No documents found in the collection.")
             return
 
