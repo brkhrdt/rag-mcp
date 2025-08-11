@@ -124,7 +124,9 @@ def test_query_command(runner, mock_rag_system):
         },
     ]
 
-    result = runner.invoke(main, ["query", "What is the capital of France?", "--num-results", "2"])
+    result = runner.invoke(
+        main, ["query", "What is the capital of France?", "--num-results", "2"]
+    )
 
     assert result.exit_code == 0
     mock_rag_system.query.assert_called_once_with("What is the capital of France?", 2)
@@ -137,7 +139,9 @@ def test_query_command(runner, mock_rag_system):
     assert "Document:\nResult 1 content." in result.output
     assert "Result 2:" in result.output
     assert "Source: file2.txt" in result.output
-    assert "Tags: N/A" not in result.output # Ensure tags line is not printed if not present
+    assert (
+        "Tags: N/A" not in result.output
+    )  # Ensure tags line is not printed if not present
     assert "Document:\nResult 2 content." in result.output
 
 
