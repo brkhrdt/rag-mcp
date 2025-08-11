@@ -8,7 +8,7 @@ lint:
 	uv run ruff check
 
 type:
-	mypy .
+	mypy . --check-untyped-defs
 
 test:
 	uv run pytest

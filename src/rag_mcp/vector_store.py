@@ -111,10 +111,13 @@ class VectorStore:
         logger.info(f"{'ID':<10} | {'Document (first 20 chars)':<25} | {'Metadata'}")
         logger.info("-" * 70)
 
+        documents = all_records.get("documents")
+        metadatas = all_records.get("metadatas")
+
         for i in range(len(all_records["ids"])):
             doc_id = all_records["ids"][i]
-            document = all_records["documents"][i]
-            metadata = all_records["metadatas"][i]
+            document = "" if documents is None else documents[i]
+            metadata = "" if metadatas is None else metadatas[i]
 
             truncated_document = (
                 document[:20] + "..." if len(document) > 20 else document
