@@ -176,18 +176,17 @@ def test_main_no_command():
     test_args = ["main.py"]  # No command provided
 
     with patch.object(sys, "argv", test_args):
-        # Patch parser.error to raise SystemExit instead of calling sys.exit
-        with patch(
-            "argparse.ArgumentParser.error", side_effect=SystemExit
-        ) as mock_error:
-            with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
-                with pytest.raises(SystemExit) as excinfo:
-                    main()
-                assert excinfo.value.code != 0  # Should exit with a non-zero code
-                # Check for expected error message in stderr
-                assert "usage:" in mock_stderr.getvalue().lower()
-                # Removed the brittle assertion about specific error message
-                mock_error.assert_called_once()  # Ensure error was called
+        # Patch sys.exit to prevent actual exit and allow testing
+        with patch("sys.exit", side_effect=SystemExit) as mock_exit:
+            with patch("argparse.ArgumentParser.print_help") as mock_print_help:
+                with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
+                    with pytest.raises(SystemExit) as excinfo:
+                        main()
+                    assert excinfo.value.code == 1  # Should exit with code 1
+                    mock_print_help.assert_called_once_with(sys.stderr)
+                    mock_exit.assert_called_once_with(1)
+                    # Check for expected error message in stderr (usage info)
+                    assert "usage:" in mock_stderr.getvalue().lower()
 
 
 def test_db_path_argument(mock_rag_system, tmp_path):
