@@ -60,7 +60,7 @@ async def test_ingest_file_mcp_tool_glob(mock_rag_system_mcp, tmp_path):
     test_file2 = tmp_path / "doc_b.txt"
     test_file2.write_text("Content B.")
     # Create a non-matching file to ensure glob works correctly
-    (tmp_path / "other.md").write_text("Other content.") # Ensure it's created
+    (tmp_path / "other.md").write_text("Other content.")  # Ensure it's created
 
     result = await ingest_file(file_paths=[str(tmp_path / "*.txt")])
 

@@ -16,6 +16,7 @@ mcp = FastMCP("interactive-shell")
 # This allows tests to replace it before any tool functions are called
 rag_system: Optional[RAG] = None
 
+
 def _get_rag_system() -> RAG:
     """Lazily initializes and returns the RAG system instance."""
     global rag_system
@@ -168,4 +169,3 @@ async def reset_vector_store() -> str:
     except Exception as e:
         logger.error(f"Error resetting vector store: {e}")
         return f"Failed to reset vector store: {e}"
-
