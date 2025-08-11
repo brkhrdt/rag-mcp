@@ -22,7 +22,7 @@ def test_ingest_file_command(mock_rag_system, tmp_path):
     test_file.write_text("This is a test document.")
 
     test_args = [
-        "main.py", # sys.argv[0] is typically the script name
+        "main.py",  # sys.argv[0] is typically the script name
         "ingest-file",
         str(test_file),
         "--chunk-size",
@@ -150,7 +150,7 @@ def test_query_command(mock_rag_system):
     assert "Document:\nResult 1 content." in output
     assert "Result 2:" in output
     assert "Source: file2.txt" in output
-    assert "Tags: N/A" not in output # Ensure tags line is not printed if not present
+    assert "Tags: N/A" not in output  # Ensure tags line is not printed if not present
     assert "Document:\nResult 2 content." in output
 
 
@@ -167,16 +167,19 @@ def test_query_command_no_results(mock_rag_system):
 
 
 def test_main_no_command():
-    test_args = ["main.py"] # No command provided
+    test_args = ["main.py"]  # No command provided
 
     with patch.object(sys, "argv", test_args):
         with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
             with pytest.raises(SystemExit) as excinfo:
                 main()
-            assert excinfo.value.code != 0 # Should exit with a non-zero code
+            assert excinfo.value.code != 0  # Should exit with a non-zero code
             # Check for expected error message in stderr
             assert "usage:" in mock_stderr.getvalue().lower()
-            assert "the following arguments are required: command" in mock_stderr.getvalue().lower()
+            assert (
+                "the following arguments are required: command"
+                in mock_stderr.getvalue().lower()
+            )
 
 
 def test_db_path_argument(mock_rag_system, tmp_path):
@@ -193,4 +196,3 @@ def test_db_path_argument(mock_rag_system, tmp_path):
 
     # Verify that RAG was initialized with the custom db_path
     RAG.assert_called_once_with(chroma_persist_directory=db_path)
-
