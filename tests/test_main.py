@@ -179,14 +179,11 @@ def test_main_no_command():
         # Patch sys.exit to prevent actual exit and allow testing
         with patch("sys.exit", side_effect=SystemExit) as mock_exit:
             with patch("argparse.ArgumentParser.print_help") as mock_print_help:
-                with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
-                    with pytest.raises(SystemExit) as excinfo:
-                        main()
+                with pytest.raises(SystemExit) as excinfo:
+                    main()
                     assert excinfo.value.code == 1  # Should exit with code 1
-                    mock_print_help.assert_called_once_with(sys.stderr)
-                    mock_exit.assert_called_once_with(1)
-                    # Check for expected error message in stderr (usage info)
-                    assert "usage:" in mock_stderr.getvalue().lower()
+                mock_print_help.assert_called_once_with(sys.stderr)
+                mock_exit.assert_called_once_with(1)
 
 
 def test_db_path_argument(mock_rag_system, tmp_path):
