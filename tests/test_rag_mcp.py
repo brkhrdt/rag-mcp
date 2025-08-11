@@ -1,7 +1,5 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from pathlib import Path
-import asyncio
 
 # Import the functions from rag_mcp.py that are exposed as MCP tools
 from rag_mcp.rag_mcp import ingest_file, ingest_text, query, reset_vector_store
@@ -41,7 +39,7 @@ async def test_ingest_file_mcp_tool(mock_rag_system_mcp, tmp_path):
     mock_rag_system_mcp.ingest_file.assert_called_once_with(
         test_file, chunk_size=100, chunk_overlap=20, tags=["test_tag"]
     )
-    assert f"Successfully ingested 1 file(s)." in result
+    assert "Successfully ingested 1 file(s)." in result
     assert str(test_file) in result
 
 
@@ -56,7 +54,7 @@ async def test_ingest_file_mcp_tool_glob(mock_rag_system_mcp, tmp_path):
     test_file2.write_text("Content B.")
     # Create a non-matching file to ensure glob works correctly
     tmp_path / "other.md"
-    
+
     result = await ingest_file(file_paths=[str(tmp_path / "*.txt")])
 
     assert mock_rag_system_mcp.ingest_file.call_count == 2
@@ -66,7 +64,7 @@ async def test_ingest_file_mcp_tool_glob(mock_rag_system_mcp, tmp_path):
     mock_rag_system_mcp.ingest_file.assert_any_call(
         test_file2, chunk_size=None, chunk_overlap=50, tags=None
     )
-    assert f"Successfully ingested 2 file(s)." in result
+    assert "Successfully ingested 2 file(s)." in result
     assert str(test_file1) in result
     assert str(test_file2) in result
 
@@ -188,7 +186,7 @@ async def test_query_mcp_tool(mock_rag_system_mcp):
     assert results[1]["timestamp"] == "2023-01-01T11:00:00"
     assert results[1]["distance"] == "0.1500"
     assert results[1]["document"] == "Doc 2 content."
-    assert "tags" not in results[1] # Ensure tags key is not present if not in metadata
+    assert "tags" not in results[1]  # Ensure tags key is not present if not in metadata
 
 
 @pytest.mark.asyncio
