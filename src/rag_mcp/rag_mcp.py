@@ -156,15 +156,3 @@ async def reset_vector_store() -> str:
     except Exception as e:
         logger.error(f"Error resetting vector store: {e}")
         return f"Failed to reset vector store: {e}"
-
-
-@mcp.tool()
-async def do_something(
-    arg1: List[str],
-) -> str:
-    """What it does
-
-    Args:
-
-    Returns:
-    """
