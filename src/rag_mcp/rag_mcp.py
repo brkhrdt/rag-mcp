@@ -156,4 +156,3 @@ async def reset_vector_store() -> str:
     except Exception as e:
         logger.error(f"Error resetting vector store: {e}")
         return f"Failed to reset vector store: {e}"
-
