@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 import glob
 import logging
-import sys # Import sys to handle SystemExit for testing
+import sys  # Import sys to handle SystemExit for testing
 
 from rag_mcp.rag import RAG
 

@@ -3,7 +3,6 @@ import sys
 import io
 from unittest.mock import patch, MagicMock
 from rag_mcp.main import main
-from rag_mcp.rag import RAG
 
 
 @pytest.fixture
@@ -13,7 +12,7 @@ def mock_rag_system():
         instance.ingest_file = MagicMock()
         instance.ingest_string = MagicMock()
         instance.query = MagicMock(return_value=[])
-        yield mock_rag, instance # Yield both the mock class and the instance
+        yield mock_rag, instance  # Yield both the mock class and the instance
 
 
 def test_ingest_file_command(mock_rag_system, tmp_path):
@@ -144,7 +143,9 @@ def test_query_command(mock_rag_system):
             main()
             output = mock_stdout.getvalue()
 
-    mock_rag_class.return_value.query.assert_called_once_with("What is the capital of France?", 2)
+    mock_rag_class.return_value.query.assert_called_once_with(
+        "What is the capital of France?", 2
+    )
     assert "Result 1:" in output
     assert "Source: file1.txt" in output
     assert "Chunk Index: 0" in output
@@ -176,7 +177,9 @@ def test_main_no_command():
 
     with patch.object(sys, "argv", test_args):
         # Patch parser.error to raise SystemExit instead of calling sys.exit
-        with patch("argparse.ArgumentParser.error", side_effect=SystemExit) as mock_error:
+        with patch(
+            "argparse.ArgumentParser.error", side_effect=SystemExit
+        ) as mock_error:
             with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
                 with pytest.raises(SystemExit) as excinfo:
                     main()
@@ -187,7 +190,7 @@ def test_main_no_command():
                     "the following arguments are required: command"
                     in mock_stderr.getvalue().lower()
                 )
-                mock_error.assert_called_once() # Ensure error was called
+                mock_error.assert_called_once()  # Ensure error was called
 
 
 def test_db_path_argument(mock_rag_system, tmp_path):
@@ -205,4 +208,3 @@ def test_db_path_argument(mock_rag_system, tmp_path):
 
     # Verify that RAG was initialized with the custom db_path
     mock_rag_class.assert_called_once_with(chroma_persist_directory=db_path)
-
