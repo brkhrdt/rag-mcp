@@ -13,10 +13,11 @@ def mock_rag_system():
         instance.ingest_file = MagicMock()
         instance.ingest_string = MagicMock()
         instance.query = MagicMock(return_value=[])
-        yield instance
+        yield mock_rag, instance # Yield both the mock class and the instance
 
 
 def test_ingest_file_command(mock_rag_system, tmp_path):
+    mock_rag_class, _ = mock_rag_system
     # Create a dummy file for ingestion
     test_file = tmp_path / "test_doc.txt"
     test_file.write_text("This is a test document.")
@@ -40,12 +41,13 @@ def test_ingest_file_command(mock_rag_system, tmp_path):
             # No direct output expected for ingest commands, but check if it runs without error
             assert mock_stdout.getvalue() == ""
 
-    mock_rag_system.ingest_file.assert_called_once_with(
+    mock_rag_class.return_value.ingest_file.assert_called_once_with(
         test_file, chunk_size=100, chunk_overlap=20, tags=["test_tag1", "test_tag2"]
     )
 
 
 def test_ingest_file_command_glob(mock_rag_system, tmp_path):
+    mock_rag_class, _ = mock_rag_system
     # Create dummy files for ingestion
     test_file1 = tmp_path / "test_doc1.txt"
     test_file1.write_text("This is test document 1.")
@@ -63,17 +65,18 @@ def test_ingest_file_command_glob(mock_rag_system, tmp_path):
             main()
             assert mock_stdout.getvalue() == ""
 
-    assert mock_rag_system.ingest_file.call_count == 2
+    assert mock_rag_class.return_value.ingest_file.call_count == 2
     # Check if both files were called, order might vary
-    mock_rag_system.ingest_file.assert_any_call(
+    mock_rag_class.return_value.ingest_file.assert_any_call(
         test_file1, chunk_size=None, chunk_overlap=50, tags=None
     )
-    mock_rag_system.ingest_file.assert_any_call(
+    mock_rag_class.return_value.ingest_file.assert_any_call(
         test_file2, chunk_size=None, chunk_overlap=50, tags=None
     )
 
 
 def test_ingest_text_command(mock_rag_system):
+    mock_rag_class, _ = mock_rag_system
     test_text = "This is some test text."
     test_args = [
         "main.py",
@@ -95,7 +98,7 @@ def test_ingest_text_command(mock_rag_system):
             main()
             assert mock_stdout.getvalue() == ""
 
-    mock_rag_system.ingest_string.assert_called_once_with(
+    mock_rag_class.return_value.ingest_string.assert_called_once_with(
         test_text,
         chunk_size=50,
         chunk_overlap=10,
@@ -105,7 +108,8 @@ def test_ingest_text_command(mock_rag_system):
 
 
 def test_query_command(mock_rag_system):
-    mock_rag_system.query.return_value = [
+    mock_rag_class, _ = mock_rag_system
+    mock_rag_class.return_value.query.return_value = [
         {
             "document": "Result 1 content.",
             "distance": 0.1,
@@ -140,7 +144,7 @@ def test_query_command(mock_rag_system):
             main()
             output = mock_stdout.getvalue()
 
-    mock_rag_system.query.assert_called_once_with("What is the capital of France?", 2)
+    mock_rag_class.return_value.query.assert_called_once_with("What is the capital of France?", 2)
     assert "Result 1:" in output
     assert "Source: file1.txt" in output
     assert "Chunk Index: 0" in output
@@ -155,7 +159,8 @@ def test_query_command(mock_rag_system):
 
 
 def test_query_command_no_results(mock_rag_system):
-    mock_rag_system.query.return_value = []
+    mock_rag_class, _ = mock_rag_system
+    mock_rag_class.return_value.query.return_value = []
     test_args = ["main.py", "query", "empty query"]
 
     with patch.object(sys, "argv", test_args):
@@ -170,19 +175,23 @@ def test_main_no_command():
     test_args = ["main.py"]  # No command provided
 
     with patch.object(sys, "argv", test_args):
-        with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
-            with pytest.raises(SystemExit) as excinfo:
-                main()
-            assert excinfo.value.code != 0  # Should exit with a non-zero code
-            # Check for expected error message in stderr
-            assert "usage:" in mock_stderr.getvalue().lower()
-            assert (
-                "the following arguments are required: command"
-                in mock_stderr.getvalue().lower()
-            )
+        # Patch parser.error to raise SystemExit instead of calling sys.exit
+        with patch("argparse.ArgumentParser.error", side_effect=SystemExit) as mock_error:
+            with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
+                with pytest.raises(SystemExit) as excinfo:
+                    main()
+                assert excinfo.value.code != 0  # Should exit with a non-zero code
+                # Check for expected error message in stderr
+                assert "usage:" in mock_stderr.getvalue().lower()
+                assert (
+                    "the following arguments are required: command"
+                    in mock_stderr.getvalue().lower()
+                )
+                mock_error.assert_called_once() # Ensure error was called
 
 
 def test_db_path_argument(mock_rag_system, tmp_path):
+    mock_rag_class, _ = mock_rag_system
     test_file = tmp_path / "test_doc.txt"
     test_file.write_text("Content.")
 
@@ -195,4 +204,5 @@ def test_db_path_argument(mock_rag_system, tmp_path):
             assert mock_stdout.getvalue() == ""
 
     # Verify that RAG was initialized with the custom db_path
-    RAG.assert_called_once_with(chroma_persist_directory=db_path)
+    mock_rag_class.assert_called_once_with(chroma_persist_directory=db_path)
+

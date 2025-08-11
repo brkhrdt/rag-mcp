@@ -2,6 +2,8 @@ import argparse
 from pathlib import Path
 import glob
 import logging
+import sys # Import sys to handle SystemExit for testing
+
 from rag_mcp.rag import RAG
 
 # Get a logger for this module
@@ -133,7 +135,12 @@ def main():
                 print(f"Distance: {res['distance']:.4f}")
                 print(f"Document:\n{res['document']}")
         else:
-            logger.info("No results found for your query.")
+            # Changed from logger.info to print for testability
+            print("No results found for your query.")
+    else:
+        # If no command is provided, print help and exit with an error code
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
