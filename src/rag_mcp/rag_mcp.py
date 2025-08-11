@@ -43,7 +43,7 @@ async def ingest_file(
             if file_path.is_file():
                 logger.info(f"Ingesting file: {file_path}")
                 try:
-                    rag_system.ingest_file(
+                    await rag_system.ingest_file(
                         file_path,
                         chunk_size=chunk_size,
                         chunk_overlap=chunk_overlap,
@@ -88,7 +88,7 @@ async def ingest_text(
         A message indicating the success or failure of the ingestion.
     """
     try:
-        rag_system.ingest_string(
+        await rag_system.ingest_string(
             text_content,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
@@ -117,7 +117,7 @@ async def query(
         containing 'document', 'metadata', and 'distance'.
     """
     try:
-        results = rag_system.query(query_text, num_results)
+        results = await rag_system.query(query_text, num_results)
         if not results:
             logger.info("No results found for your query.")
             return []
@@ -151,8 +151,9 @@ async def reset_vector_store() -> str:
         A confirmation message that the vector store has been reset.
     """
     try:
-        rag_system.reset_vector_store()
+        await rag_system.reset_vector_store()
         return "Vector store has been successfully reset."
     except Exception as e:
         logger.error(f"Error resetting vector store: {e}")
         return f"Failed to reset vector store: {e}"
+

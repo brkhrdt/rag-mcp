@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, AsyncMock
 
 # Import the functions from rag_mcp.py that are exposed as MCP tools
 from rag_mcp.rag_mcp import ingest_file, ingest_text, query, reset_vector_store
@@ -14,10 +14,10 @@ def mock_rag_system_mcp():
     with patch("rag_mcp.rag_mcp.RAG") as mock_rag_class:
         # Configure the mock instance that rag_mcp.rag_mcp.rag_system will be
         instance = mock_rag_class.return_value
-        instance.ingest_file = MagicMock()
-        instance.ingest_string = MagicMock()
-        instance.query = MagicMock(return_value=[])
-        instance.reset_vector_store = MagicMock()
+        instance.ingest_file = AsyncMock()
+        instance.ingest_string = AsyncMock()
+        instance.query = AsyncMock(return_value=[])
+        instance.reset_vector_store = AsyncMock()
         yield instance  # Yield the mock instance for direct interaction in tests
 
 
@@ -53,7 +53,7 @@ async def test_ingest_file_mcp_tool_glob(mock_rag_system_mcp, tmp_path):
     test_file2 = tmp_path / "doc_b.txt"
     test_file2.write_text("Content B.")
     # Create a non-matching file to ensure glob works correctly
-    tmp_path / "other.md"
+    (tmp_path / "other.md").write_text("Other content.") # Ensure it's created
 
     result = await ingest_file(file_paths=[str(tmp_path / "*.txt")])
 
@@ -239,3 +239,4 @@ async def test_reset_vector_store_mcp_tool_error(mock_rag_system_mcp):
     result = await reset_vector_store()
 
     assert "Failed to reset vector store: Reset failed" in result
+
