@@ -3,6 +3,7 @@ from unittest.mock import patch, AsyncMock
 
 # Import the functions from rag_mcp.py that are exposed as MCP tools
 from rag_mcp.rag_mcp import ingest_file, ingest_text, query, reset_vector_store
+import rag_mcp.rag_mcp as rag_mcp_module
 
 
 @pytest.fixture
@@ -12,13 +13,19 @@ def mock_rag_system_mcp():
     This ensures that actual RAG operations (like ChromaDB interactions) are not performed during tests.
     """
     with patch("rag_mcp.rag_mcp.RAG") as mock_rag_class:
+        # Create an AsyncMock instance for the RAG system
+        mock_instance = AsyncMock()
         # Configure the mock instance that rag_mcp.rag_mcp.rag_system will be
-        instance = mock_rag_class.return_value
-        instance.ingest_file = AsyncMock()
-        instance.ingest_string = AsyncMock()
-        instance.query = AsyncMock(return_value=[])
-        instance.reset_vector_store = AsyncMock()
-        yield instance  # Yield the mock instance for direct interaction in tests
+        mock_rag_class.return_value = mock_instance
+
+        # Directly replace the global rag_system in the module with our mock
+        original_rag_system = rag_mcp_module.rag_system
+        rag_mcp_module.rag_system = mock_instance
+
+        yield mock_instance  # Yield the mock instance for direct interaction in tests
+
+        # Restore the original rag_system after the test
+        rag_mcp_module.rag_system = original_rag_system
 
 
 @pytest.mark.asyncio
@@ -53,7 +60,7 @@ async def test_ingest_file_mcp_tool_glob(mock_rag_system_mcp, tmp_path):
     test_file2 = tmp_path / "doc_b.txt"
     test_file2.write_text("Content B.")
     # Create a non-matching file to ensure glob works correctly
-    (tmp_path / "other.md").write_text("Other content.")  # Ensure it's created
+    (tmp_path / "other.md").write_text("Other content.") # Ensure it's created
 
     result = await ingest_file(file_paths=[str(tmp_path / "*.txt")])
 

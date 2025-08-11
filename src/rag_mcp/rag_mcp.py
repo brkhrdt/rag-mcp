@@ -12,9 +12,17 @@ logger = logging.getLogger(__name__)
 # Initialize FastMCP server
 mcp = FastMCP("interactive-shell")
 
-# Initialize RAG system (using default persistence directory for now)
-# TODO: Make db_path configurable for MCP functions if needed
-rag_system = RAG()
+# Initialize RAG system as None initially, to be set up later or mocked
+# This allows tests to replace it before any tool functions are called
+rag_system: Optional[RAG] = None
+
+def _get_rag_system() -> RAG:
+    """Lazily initializes and returns the RAG system instance."""
+    global rag_system
+    if rag_system is None:
+        # TODO: Make db_path configurable for MCP functions if needed
+        rag_system = RAG()
+    return rag_system
 
 
 @mcp.tool()
@@ -35,6 +43,7 @@ async def ingest_file(
     Returns:
         A message indicating the success or failure of the ingestion.
     """
+    current_rag_system = _get_rag_system()
     ingested_files = []
     skipped_files = []
     for pattern in file_paths:
@@ -43,7 +52,7 @@ async def ingest_file(
             if file_path.is_file():
                 logger.info(f"Ingesting file: {file_path}")
                 try:
-                    await rag_system.ingest_file(
+                    await current_rag_system.ingest_file(
                         file_path,
                         chunk_size=chunk_size,
                         chunk_overlap=chunk_overlap,
@@ -87,8 +96,9 @@ async def ingest_text(
     Returns:
         A message indicating the success or failure of the ingestion.
     """
+    current_rag_system = _get_rag_system()
     try:
-        await rag_system.ingest_string(
+        await current_rag_system.ingest_string(
             text_content,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
@@ -116,8 +126,9 @@ async def query(
         A list of dictionaries, where each dictionary represents a query result
         containing 'document', 'metadata', and 'distance'.
     """
+    current_rag_system = _get_rag_system()
     try:
-        results = await rag_system.query(query_text, num_results)
+        results = await current_rag_system.query(query_text, num_results)
         if not results:
             logger.info("No results found for your query.")
             return []
@@ -150,9 +161,11 @@ async def reset_vector_store() -> str:
     Returns:
         A confirmation message that the vector store has been reset.
     """
+    current_rag_system = _get_rag_system()
     try:
-        await rag_system.reset_vector_store()
+        await current_rag_system.reset_vector_store()
         return "Vector store has been successfully reset."
     except Exception as e:
         logger.error(f"Error resetting vector store: {e}")
         return f"Failed to reset vector store: {e}"
+
