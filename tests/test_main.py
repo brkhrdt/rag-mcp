@@ -1,13 +1,9 @@
 import pytest
-from click.testing import CliRunner
+import sys
+import io
 from unittest.mock import patch, MagicMock
 from rag_mcp.main import main
 from rag_mcp.rag import RAG
-
-
-@pytest.fixture
-def runner():
-    return CliRunner()
 
 
 @pytest.fixture
@@ -20,48 +16,53 @@ def mock_rag_system():
         yield instance
 
 
-def test_ingest_file_command(runner, mock_rag_system, tmp_path):
+def test_ingest_file_command(mock_rag_system, tmp_path):
     # Create a dummy file for ingestion
     test_file = tmp_path / "test_doc.txt"
     test_file.write_text("This is a test document.")
 
-    result = runner.invoke(
-        main,
-        [
-            "ingest-file",
-            str(test_file),
-            "--chunk-size",
-            "100",
-            "--chunk-overlap",
-            "20",
-            "--tags",
-            "test_tag1",
-            "test_tag2",
-        ],
-    )
+    test_args = [
+        "main.py", # sys.argv[0] is typically the script name
+        "ingest-file",
+        str(test_file),
+        "--chunk-size",
+        "100",
+        "--chunk-overlap",
+        "20",
+        "--tags",
+        "test_tag1",
+        "test_tag2",
+    ]
 
-    assert result.exit_code == 0
+    with patch.object(sys, "argv", test_args):
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+            main()
+            # No direct output expected for ingest commands, but check if it runs without error
+            assert mock_stdout.getvalue() == ""
+
     mock_rag_system.ingest_file.assert_called_once_with(
         test_file, chunk_size=100, chunk_overlap=20, tags=["test_tag1", "test_tag2"]
     )
 
 
-def test_ingest_file_command_glob(runner, mock_rag_system, tmp_path):
+def test_ingest_file_command_glob(mock_rag_system, tmp_path):
     # Create dummy files for ingestion
     test_file1 = tmp_path / "test_doc1.txt"
     test_file1.write_text("This is test document 1.")
     test_file2 = tmp_path / "test_doc2.txt"
     test_file2.write_text("This is test document 2.")
 
-    result = runner.invoke(
-        main,
-        [
-            "ingest-file",
-            str(tmp_path / "*.txt"),
-        ],
-    )
+    test_args = [
+        "main.py",
+        "ingest-file",
+        str(tmp_path / "*.txt"),
+    ]
 
-    assert result.exit_code == 0
+    with patch.object(sys, "argv", test_args):
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+            main()
+            assert mock_stdout.getvalue() == ""
+
     assert mock_rag_system.ingest_file.call_count == 2
     # Check if both files were called, order might vary
     mock_rag_system.ingest_file.assert_any_call(
@@ -72,26 +73,28 @@ def test_ingest_file_command_glob(runner, mock_rag_system, tmp_path):
     )
 
 
-def test_ingest_text_command(runner, mock_rag_system):
+def test_ingest_text_command(mock_rag_system):
     test_text = "This is some test text."
-    result = runner.invoke(
-        main,
-        [
-            "ingest-text",
-            test_text,
-            "--chunk-size",
-            "50",
-            "--chunk-overlap",
-            "10",
-            "--source-name",
-            "my_source",
-            "--tags",
-            "tag_a",
-            "tag_b",
-        ],
-    )
+    test_args = [
+        "main.py",
+        "ingest-text",
+        test_text,
+        "--chunk-size",
+        "50",
+        "--chunk-overlap",
+        "10",
+        "--source-name",
+        "my_source",
+        "--tags",
+        "tag_a",
+        "tag_b",
+    ]
 
-    assert result.exit_code == 0
+    with patch.object(sys, "argv", test_args):
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+            main()
+            assert mock_stdout.getvalue() == ""
+
     mock_rag_system.ingest_string.assert_called_once_with(
         test_text,
         chunk_size=50,
@@ -101,7 +104,7 @@ def test_ingest_text_command(runner, mock_rag_system):
     )
 
 
-def test_query_command(runner, mock_rag_system):
+def test_query_command(mock_rag_system):
     mock_rag_system.query.return_value = [
         {
             "document": "Result 1 content.",
@@ -124,47 +127,70 @@ def test_query_command(runner, mock_rag_system):
         },
     ]
 
-    result = runner.invoke(
-        main, ["query", "What is the capital of France?", "--num-results", "2"]
-    )
+    test_args = [
+        "main.py",
+        "query",
+        "What is the capital of France?",
+        "--num-results",
+        "2",
+    ]
 
-    assert result.exit_code == 0
+    with patch.object(sys, "argv", test_args):
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+            main()
+            output = mock_stdout.getvalue()
+
     mock_rag_system.query.assert_called_once_with("What is the capital of France?", 2)
-    assert "Result 1:" in result.output
-    assert "Source: file1.txt" in result.output
-    assert "Chunk Index: 0" in result.output
-    assert "Timestamp: 2023-01-01" in result.output
-    assert "Tags: tag1" in result.output
-    assert "Distance: 0.1000" in result.output
-    assert "Document:\nResult 1 content." in result.output
-    assert "Result 2:" in result.output
-    assert "Source: file2.txt" in result.output
-    assert (
-        "Tags: N/A" not in result.output
-    )  # Ensure tags line is not printed if not present
-    assert "Document:\nResult 2 content." in result.output
+    assert "Result 1:" in output
+    assert "Source: file1.txt" in output
+    assert "Chunk Index: 0" in output
+    assert "Timestamp: 2023-01-01" in output
+    assert "Tags: tag1" in output
+    assert "Distance: 0.1000" in output
+    assert "Document:\nResult 1 content." in output
+    assert "Result 2:" in output
+    assert "Source: file2.txt" in output
+    assert "Tags: N/A" not in output # Ensure tags line is not printed if not present
+    assert "Document:\nResult 2 content." in output
 
 
-def test_query_command_no_results(runner, mock_rag_system):
+def test_query_command_no_results(mock_rag_system):
     mock_rag_system.query.return_value = []
-    result = runner.invoke(main, ["query", "empty query"])
-    assert result.exit_code == 0
-    assert "No results found for your query." in result.output
+    test_args = ["main.py", "query", "empty query"]
+
+    with patch.object(sys, "argv", test_args):
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+            main()
+            output = mock_stdout.getvalue()
+
+    assert "No results found for your query." in output
 
 
-def test_main_no_command(runner):
-    result = runner.invoke(main, [])
-    assert result.exit_code != 0  # Should exit with an error for no command
-    assert "Error: Missing command" in result.output or "Usage:" in result.output
+def test_main_no_command():
+    test_args = ["main.py"] # No command provided
+
+    with patch.object(sys, "argv", test_args):
+        with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
+            with pytest.raises(SystemExit) as excinfo:
+                main()
+            assert excinfo.value.code != 0 # Should exit with a non-zero code
+            # Check for expected error message in stderr
+            assert "usage:" in mock_stderr.getvalue().lower()
+            assert "the following arguments are required: command" in mock_stderr.getvalue().lower()
 
 
-def test_db_path_argument(runner, mock_rag_system, tmp_path):
+def test_db_path_argument(mock_rag_system, tmp_path):
     test_file = tmp_path / "test_doc.txt"
     test_file.write_text("Content.")
 
     db_path = str(tmp_path / "my_custom_db")
-    result = runner.invoke(main, ["--db-path", db_path, "ingest-file", str(test_file)])
+    test_args = ["main.py", "--db-path", db_path, "ingest-file", str(test_file)]
 
-    assert result.exit_code == 0
+    with patch.object(sys, "argv", test_args):
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+            main()
+            assert mock_stdout.getvalue() == ""
+
     # Verify that RAG was initialized with the custom db_path
     RAG.assert_called_once_with(chroma_persist_directory=db_path)
+
