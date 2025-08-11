@@ -1,6 +1,4 @@
 from typing import Dict, Optional, List
-import uuid
-import asyncio
 from mcp.server.fastmcp import FastMCP
 from pathlib import Path
 import glob
@@ -59,7 +57,9 @@ async def ingest_file(
                 logger.warning(f"Skipping non-file path: {file_path}")
                 skipped_files.append(f"{file_path} (Skipped: Not a file)")
 
-    response = f"Ingestion complete. Successfully ingested {len(ingested_files)} file(s)."
+    response = (
+        f"Ingestion complete. Successfully ingested {len(ingested_files)} file(s)."
+    )
     if ingested_files:
         response += f"\nIngested: {', '.join(ingested_files)}"
     if skipped_files:
