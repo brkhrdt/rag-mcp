@@ -45,27 +45,12 @@ async def ingest_file(
         A message indicating the success or failure of the ingestion.
     """
     current_rag_system = _get_rag_system()
-    ingested_files = []
-    skipped_files = []
-    for pattern in file_paths:
-        for file_path_str in glob.glob(pattern):
-            file_path = Path(file_path_str)
-            if file_path.is_file():
-                logger.info(f"Ingesting file: {file_path}")
-                try:
-                    await current_rag_system.ingest_file(
-                        file_path,
-                        chunk_size=chunk_size,
-                        chunk_overlap=chunk_overlap,
-                        tags=tags,
-                    )
-                    ingested_files.append(str(file_path))
-                except Exception as e:
-                    logger.error(f"Error ingesting {file_path}: {e}")
-                    skipped_files.append(f"{file_path} (Error: {e})")
-            else:
-                logger.warning(f"Skipping non-file path: {file_path}")
-                skipped_files.append(f"{file_path} (Skipped: Not a file)")
+    ingested_files, skipped_files = current_rag_system.ingest_files(
+        file_paths,
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        tags=tags,
+    )
 
     response = f"Ingested {len(ingested_files)} file(s)."
     if ingested_files:
@@ -127,25 +112,12 @@ async def query(
     """
     current_rag_system = _get_rag_system()
     try:
-        results = await current_rag_system.query(query_text, num_results)
+        results = current_rag_system.query(query_text, num_results)
         if not results:
             logger.info("No results found for your query.")
             return []
 
-        formatted_results = []
-        for i, res in enumerate(results):
-            formatted_result = {
-                "result_number": i + 1,
-                "source": res["metadata"].get("source", "N/A"),
-                "chunk_index": res["metadata"].get("chunk_index", "N/A"),
-                "timestamp": res["metadata"].get("timestamp", "N/A"),
-                "distance": f"{res['distance']:.4f}",
-                "document": res["document"],
-            }
-            if "tags" in res["metadata"]:
-                formatted_result["tags"] = res["metadata"]["tags"]
-            formatted_results.append(formatted_result)
-        return formatted_results
+        return [result.to_dict() for result in results]
     except Exception as e:
         logger.error(f"Error during query: {e}")
         return [{"error": f"Failed to perform query: {e}"}]

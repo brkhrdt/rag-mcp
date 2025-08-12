@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, cast, Mapping
 import datetime
 import logging
+import glob
 
 from rag_mcp.document_processor import DocumentProcessor
 from rag_mcp.embedding_model import EmbeddingModel
@@ -10,6 +11,56 @@ from rag_mcp.vector_store import VectorStore
 
 # Get a logger for this module
 logger = logging.getLogger(__name__)
+
+
+class QueryResult:
+    def __init__(self, document: str, metadata: Dict[str, Any], distance: float, result_number: int = 1):
+        self.document = document
+        self.metadata = metadata
+        self.distance = distance
+        self.result_number = result_number
+    
+    def __str__(self) -> str:
+        """Format result for CLI display."""
+        lines = [
+            f"Result {self.result_number}:",
+            f"Source: {self.metadata.get('source', 'N/A')}",
+            f"Chunk Index: {self.metadata.get('chunk_index', 'N/A')}",
+            f"Timestamp: {self.metadata.get('timestamp', 'N/A')}"
+        ]
+        
+        if "tags" in self.metadata:
+            tags = self.metadata["tags"]
+            if isinstance(tags, str):
+                tags = tags.split(",")
+            lines.append(f"Tags: {', '.join(tags)}")
+        
+        lines.extend([
+            f"Distance: {self.distance:.4f}",
+            f"Document:\n{self.document}"
+        ])
+        
+        return "\n".join(lines)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Format result for MCP response."""
+        result = {
+            "result_number": self.result_number,
+            "source": self.metadata.get("source", "N/A"),
+            "chunk_index": self.metadata.get("chunk_index", "N/A"),
+            "timestamp": self.metadata.get("timestamp", "N/A"),
+            "distance": f"{self.distance:.4f}",
+            "document": self.document,
+        }
+        
+        if "tags" in self.metadata:
+            tags = self.metadata["tags"]
+            if isinstance(tags, str):
+                result["tags"] = tags.split(",")
+            else:
+                result["tags"] = tags
+        
+        return result
 
 
 class RAG:
@@ -133,12 +184,58 @@ class RAG:
             logger.error(f"Error ingesting file {file_path}: {e}")
             return
 
-    def query(self, query_text: str, num_results: int = 5) -> List[Dict[str, Any]]:
+    def ingest_files(
+        self,
+        file_patterns: List[str],
+        chunk_size: Optional[int] = None,
+        chunk_overlap: int = 50,
+        tags: Optional[List[str]] = None,
+    ) -> tuple[List[str], List[str]]:
+        """Ingest multiple files using glob patterns.
+        
+        Returns:
+            Tuple of (ingested_files, skipped_files)
+        """
+        ingested_files = []
+        skipped_files = []
+        
+        for pattern in file_patterns:
+            for file_path_str in glob.glob(pattern):
+                file_path = Path(file_path_str)
+                if file_path.is_file():
+                    try:
+                        self.ingest_file(
+                            file_path,
+                            chunk_size=chunk_size,
+                            chunk_overlap=chunk_overlap,
+                            tags=tags,
+                        )
+                        ingested_files.append(str(file_path))
+                    except Exception as e:
+                        logger.error(f"Error ingesting {file_path}: {e}")
+                        skipped_files.append(f"{file_path} (Error: {e})")
+                else:
+                    logger.warning(f"Skipping non-file path: {file_path}")
+                    skipped_files.append(f"{file_path} (Skipped: Not a file)")
+        
+        return ingested_files, skipped_files
+
+    def query(self, query_text: str, num_results: int = 5) -> List[QueryResult]:
         query_embedding: Sequence[float] = cast(
             Sequence[float], self.embedding_model.embed(query_text)
         )
         results = self.vector_store.query(query_embedding, num_results)
-        return results
+        
+        query_results = []
+        for i, res in enumerate(results):
+            query_results.append(QueryResult(
+                document=res["document"],
+                metadata=res["metadata"],
+                distance=res["distance"],
+                result_number=i + 1
+            ))
+        
+        return query_results
 
     def reset_vector_store(self):
         self.vector_store.reset()

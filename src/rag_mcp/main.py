@@ -100,19 +100,13 @@ def main():
     rag_system = RAG(chroma_persist_directory=args.db_path)
 
     if args.command == "ingest-file":
-        for pattern in args.file_paths:
-            for file_path_str in glob.glob(pattern):
-                file_path = Path(file_path_str)
-                if file_path.is_file():
-                    logger.info(f"Ingesting file: {file_path}")
-                    rag_system.ingest_file(
-                        file_path,
-                        chunk_size=args.chunk_size,
-                        chunk_overlap=args.chunk_overlap,
-                        tags=args.tags,
-                    )
-                else:
-                    logger.warning(f"Skipping non-file path: {file_path}")
+        ingested_files, skipped_files = rag_system.ingest_files(
+            args.file_paths,
+            chunk_size=args.chunk_size,
+            chunk_overlap=args.chunk_overlap,
+            tags=args.tags,
+        )
+        # Log results if needed, but no output for CLI consistency
     elif args.command == "ingest-text":
         rag_system.ingest_string(
             args.text_content,
@@ -125,17 +119,9 @@ def main():
         results = rag_system.query(args.query_text, args.num_results)
         if results:
             logger.info("\n--- Query Results ---")
-            for i, res in enumerate(results):
-                print(f"\nResult {i + 1}:")
-                print(f"Source: {res['metadata'].get('source', 'N/A')}")
-                print(f"Chunk Index: {res['metadata'].get('chunk_index', 'N/A')}")
-                print(f"Timestamp: {res['metadata'].get('timestamp', 'N/A')}")
-                if "tags" in res["metadata"]:
-                    print(f"Tags: {', '.join(res['metadata']['tags'])}")
-                print(f"Distance: {res['distance']:.4f}")
-                print(f"Document:\n{res['document']}")
+            for result in results:
+                print(f"\n{result}")
         else:
-            # Changed from logger.info to print for testability
             print("No results found for your query.")
     else:
         # If no command is provided, print help and exit with an error code
