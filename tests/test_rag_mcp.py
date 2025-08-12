@@ -47,14 +47,9 @@ async def mcp_client():
     Fixture to provide a FastMCP test client.
     """
     # Initialize FastMCP with a dummy name for testing
-    test_mcp = FastMCP("test-rag-mcp")
-    # Register the tools from the rag_mcp_module
-    # This is crucial because the tools are defined using @mcp.tool() decorator
-    # in the rag_mcp_module, and we need to ensure they are registered with *this*
-    # FastMCP instance for testing.
-    # However, since rag_mcp_module already initializes its own global mcp instance,
-    # we will use that one directly for testing its tools.
     # The FastMCP client is used to call the registered tools.
+    # Since rag_mcp_module already initializes its own global mcp instance,
+    # we will use that one directly for testing its tools.
     yield rag_mcp_module.mcp.client()
 
 
