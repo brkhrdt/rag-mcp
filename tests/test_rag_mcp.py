@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 import os
 from typing import Dict, List
 
@@ -27,6 +26,7 @@ def temp_chroma_dir(tmp_path):
     # Clean up the directory after the test
     if db_path.exists():
         import shutil
+
         shutil.rmtree(db_path)
 
 
@@ -186,7 +186,9 @@ async def test_reset_vector_store(mcp_client, temp_ingest_file, temp_chroma_dir)
 
     # Verify content exists before reset
     rag_instance_before_reset = RAG(chroma_persist_directory=str(temp_chroma_dir))
-    results_before_reset = rag_instance_before_reset.query("test document", num_results=1)
+    results_before_reset = rag_instance_before_reset.query(
+        "test document", num_results=1
+    )
     assert len(results_before_reset) > 0
 
     # Perform reset
@@ -197,4 +199,3 @@ async def test_reset_vector_store(mcp_client, temp_ingest_file, temp_chroma_dir)
     rag_instance_after_reset = RAG(chroma_persist_directory=str(temp_chroma_dir))
     results_after_reset = rag_instance_after_reset.query("test document", num_results=1)
     assert len(results_after_reset) == 0
-
