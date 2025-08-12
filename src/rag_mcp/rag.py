@@ -14,34 +14,37 @@ logger = logging.getLogger(__name__)
 
 
 class QueryResult:
-    def __init__(self, document: str, metadata: Dict[str, Any], distance: float, result_number: int = 1):
+    def __init__(
+        self,
+        document: str,
+        metadata: Dict[str, Any],
+        distance: float,
+        result_number: int = 1,
+    ):
         self.document = document
         self.metadata = metadata
         self.distance = distance
         self.result_number = result_number
-    
+
     def __str__(self) -> str:
         """Format result for CLI display."""
         lines = [
             f"Result {self.result_number}:",
             f"Source: {self.metadata.get('source', 'N/A')}",
             f"Chunk Index: {self.metadata.get('chunk_index', 'N/A')}",
-            f"Timestamp: {self.metadata.get('timestamp', 'N/A')}"
+            f"Timestamp: {self.metadata.get('timestamp', 'N/A')}",
         ]
-        
+
         if "tags" in self.metadata:
             tags = self.metadata["tags"]
             if isinstance(tags, str):
                 tags = tags.split(",")
             lines.append(f"Tags: {', '.join(tags)}")
-        
-        lines.extend([
-            f"Distance: {self.distance:.4f}",
-            f"Document:\n{self.document}"
-        ])
-        
+
+        lines.extend([f"Distance: {self.distance:.4f}", f"Document:\n{self.document}"])
+
         return "\n".join(lines)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Format result for MCP response."""
         result = {
@@ -52,14 +55,14 @@ class QueryResult:
             "distance": f"{self.distance:.4f}",
             "document": self.document,
         }
-        
+
         if "tags" in self.metadata:
             tags = self.metadata["tags"]
             if isinstance(tags, str):
                 result["tags"] = tags.split(",")
             else:
                 result["tags"] = tags
-        
+
         return result
 
 
@@ -192,7 +195,7 @@ class RAG:
         tags: Optional[List[str]] = None,
     ) -> tuple[List[str], List[str]]:
         """Ingest multiple files using glob patterns.
-        
+
         Returns:
             Tuple of (ingested_files, skipped_files)
         """
@@ -225,16 +228,18 @@ class RAG:
             Sequence[float], self.embedding_model.embed(query_text)
         )
         results = self.vector_store.query(query_embedding, num_results)
-        
+
         query_results = []
         for i, res in enumerate(results):
-            query_results.append(QueryResult(
-                document=res["document"],
-                metadata=res["metadata"],
-                distance=res["distance"],
-                result_number=i + 1
-            ))
-        
+            query_results.append(
+                QueryResult(
+                    document=res["document"],
+                    metadata=res["metadata"],
+                    distance=res["distance"],
+                    result_number=i + 1,
+                )
+            )
+
         return query_results
 
     def reset_vector_store(self):
