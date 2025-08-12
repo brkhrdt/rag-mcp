@@ -41,9 +41,9 @@ def test_ingest_document(rag_system_temp, temp_ingest_file):
 
     query_results = rag_system_temp.query("fox jumps", num_results=1)
     assert len(query_results) > 0
-    assert "fox jumps over the lazy dog" in query_results[0]["document"]
-    assert query_results[0]["metadata"]["source"] == str(file_path)
-    assert "chunk_index" in query_results[0]["metadata"]
+    assert "fox jumps over the lazy dog" in query_results[0].document
+    assert query_results[0].metadata["source"] == str(file_path)
+    assert "chunk_index" in query_results[0].metadata
 
 
 def test_ingest_multiple_documents(rag_system_temp, tmp_path):
@@ -67,26 +67,26 @@ def test_ingest_multiple_documents(rag_system_temp, tmp_path):
     # Query for content from the first document
     query_results1 = rag_system_temp.query("apples", num_results=1)
     assert len(query_results1) > 0
-    assert "apples and oranges" in query_results1[0]["document"]
-    assert query_results1[0]["metadata"]["source"] == str(file_path1)
+    assert "apples and oranges" in query_results1[0].document
+    assert query_results1[0].metadata["source"] == str(file_path1)
 
     # Query for content from the second document
     query_results2 = rag_system_temp.query("bananas", num_results=1)
     assert len(query_results2) > 0
-    assert "bananas and grapes" in query_results2[0]["document"]
-    assert query_results2[0]["metadata"]["source"] == str(file_path2)
+    assert "bananas and grapes" in query_results2[0].document
+    assert query_results2[0].metadata["source"] == str(file_path2)
 
     # Query for content from the second document
     query_results3 = rag_system_temp.query("vegetable", num_results=1)
     assert len(query_results3) > 0
-    assert "lettuce" in query_results3[0]["document"]
-    assert query_results3[0]["metadata"]["source"] == str(file_path3)
+    assert "lettuce" in query_results3[0].document
+    assert query_results3[0].metadata["source"] == str(file_path3)
 
     # Query for content that might span or be related to both (if applicable, though not strictly tested here)
     # For now, just ensure both types of content are retrievable
     query_results_combined = rag_system_temp.query("fruits", num_results=2)
     assert len(query_results_combined) == 2
-    sources = {r["metadata"]["source"] for r in query_results_combined}
+    sources = {r.metadata["source"] for r in query_results_combined}
     assert str(file_path1) in sources
     assert str(file_path2) in sources
 
@@ -101,9 +101,9 @@ def test_ingest_string_input(rag_system_temp):
 
     query_results = rag_system_temp.query("unique words", num_results=1)
     assert len(query_results) > 0
-    assert "unique words" in query_results[0]["document"]
-    assert query_results[0]["metadata"]["source"] == source_name
-    assert "chunk_index" in query_results[0]["metadata"]
+    assert "unique words" in query_results[0].document
+    assert query_results[0].metadata["source"] == source_name
+    assert "chunk_index" in query_results[0].metadata
 
     # Reset the vector store to ensure a clean state for the next test case
     rag_system_temp.reset_vector_store()
@@ -113,7 +113,7 @@ def test_ingest_string_input(rag_system_temp):
     rag_system_temp.ingest_string(test_string_default, chunk_size=10, chunk_overlap=2)
     query_results_default = rag_system_temp.query("default source", num_results=1)
     assert len(query_results_default) > 0
-    assert query_results_default[0]["metadata"]["source"] == "string_input"
+    assert query_results_default[0].metadata["source"] == "string_input"
 
 
 def test_query_system(rag_system_temp, temp_ingest_file):
@@ -125,9 +125,9 @@ def test_query_system(rag_system_temp, temp_ingest_file):
     results = rag_system_temp.query(query_text, num_results=1)
 
     assert len(results) == 1
-    assert "Artificial intelligence" in results[0]["document"]
-    assert results[0]["metadata"]["source"] == str(file_path)
-    assert "distance" in results[0]
+    assert "Artificial intelligence" in results[0].document
+    assert results[0].metadata["source"] == str(file_path)
+    assert results[0].distance
 
 
 def test_reset_vector_store(rag_system_temp, temp_ingest_file):
@@ -175,7 +175,7 @@ def test_ingest_large_chunk_size_warning(rag_system_temp, temp_ingest_file, capl
 
     query_results = rag_system_temp.query("fox jumps", num_results=1)
     assert len(query_results) > 0
-    assert "fox jumps over the lazy dog" in query_results[0]["document"]
+    assert "fox jumps over the lazy dog" in query_results[0].document
 
 
 def test_ingest_with_tags(rag_system_temp, temp_ingest_file):
@@ -194,10 +194,10 @@ def test_ingest_with_tags(rag_system_temp, temp_ingest_file):
 
     query_results = rag_system_temp.query("finance report", num_results=1)
     assert len(query_results) > 0
-    assert query_results[0]["metadata"]["source"] == source_name
-    assert "tags" in query_results[0]["metadata"]
+    assert query_results[0].metadata["source"] == source_name
+    assert "tags" in query_results[0].metadata
     # Split the tags string back into a list for comparison
-    retrieved_tags = query_results[0]["metadata"]["tags"].split(",")
+    retrieved_tags = query_results[0].metadata["tags"].split(",")
     assert sorted(retrieved_tags) == sorted(test_tags)
 
     # Test file ingestion with tags
@@ -207,8 +207,8 @@ def test_ingest_with_tags(rag_system_temp, temp_ingest_file):
 
     query_results_file = rag_system_temp.query("quick brown fox", num_results=1)
     assert len(query_results_file) > 0
-    assert query_results_file[0]["metadata"]["source"] == str(file_path)
-    assert "tags" in query_results_file[0]["metadata"]
+    assert query_results_file[0].metadata["source"] == str(file_path)
+    assert "tags" in query_results_file[0].metadata
     # Split the tags string back into a list for comparison
-    retrieved_file_tags = query_results_file[0]["metadata"]["tags"].split(",")
+    retrieved_file_tags = query_results_file[0].metadata["tags"].split(",")
     assert sorted(retrieved_file_tags) == sorted(file_tags)
