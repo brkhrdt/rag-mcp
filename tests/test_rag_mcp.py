@@ -3,7 +3,6 @@ import os
 from typing import Dict, List
 
 # Import the FastMCP client for testing
-from mcp.server.fastmcp import FastMCP
 
 # Import the module under test
 import rag_mcp.rag_mcp as rag_mcp_module
