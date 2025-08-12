@@ -1,7 +1,5 @@
 from typing import Dict, Optional, List
 from mcp.server.fastmcp import FastMCP
-from pathlib import Path
-import glob
 import logging
 
 from rag_mcp.rag import RAG

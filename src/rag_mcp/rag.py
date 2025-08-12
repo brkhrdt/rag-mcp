@@ -201,7 +201,7 @@ class RAG:
         """
         ingested_files = []
         skipped_files = []
-        
+
         for pattern in file_patterns:
             for file_path_str in glob.glob(pattern):
                 file_path = Path(file_path_str)
@@ -220,12 +220,13 @@ class RAG:
                 else:
                     logger.warning(f"Skipping non-file path: {file_path}")
                     skipped_files.append(f"{file_path} (Skipped: Not a file)")
-        
+
         return ingested_files, skipped_files
 
     def query(self, query_text: str, num_results: int = 5) -> List[QueryResult]:
         query_embedding: Sequence[float] = cast(
-            Sequence[float], self.embedding_model.embed(query_text)
+            Sequence[float],
+            self.embedding_model.embed(query_text, show_progress_bar=False),
         )
         results = self.vector_store.query(query_embedding, num_results)
 
