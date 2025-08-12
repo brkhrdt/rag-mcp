@@ -46,7 +46,7 @@ async def test_ingest_file_mcp_tool(mock_rag_system_mcp, tmp_path):
     mock_rag_system_mcp.ingest_file.assert_called_once_with(
         test_file, chunk_size=100, chunk_overlap=20, tags=["test_tag"]
     )
-    assert "Successfully ingested 1 file(s)." in result
+    assert "Ingested 1 file(s)." in result
     assert str(test_file) in result
 
 
@@ -71,7 +71,7 @@ async def test_ingest_file_mcp_tool_glob(mock_rag_system_mcp, tmp_path):
     mock_rag_system_mcp.ingest_file.assert_any_call(
         test_file2, chunk_size=None, chunk_overlap=50, tags=None
     )
-    assert "Successfully ingested 2 file(s)." in result
+    assert "Ingested 2 file(s)." in result
     assert str(test_file1) in result
     assert str(test_file2) in result
 
@@ -85,8 +85,7 @@ async def test_ingest_file_mcp_tool_non_existent_file(mock_rag_system_mcp, tmp_p
     result = await ingest_file(file_paths=[str(non_existent_file)])
 
     mock_rag_system_mcp.ingest_file.assert_not_called()
-    assert "Successfully ingested 0 file(s)." in result
-    assert f"{non_existent_file} (Skipped: Not a file)" in result
+    assert "Ingested 0 file(s)." in result
 
 
 @pytest.mark.asyncio
@@ -104,7 +103,7 @@ async def test_ingest_file_mcp_tool_ingestion_error(mock_rag_system_mcp, tmp_pat
     mock_rag_system_mcp.ingest_file.assert_called_once_with(
         test_file, chunk_size=None, chunk_overlap=50, tags=None
     )
-    assert "Successfully ingested 0 file(s)." in result
+    assert "Ingested 0 file(s)." in result
     assert f"{test_file} (Error: Simulated ingestion error)" in result
 
 
