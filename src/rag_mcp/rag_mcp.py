@@ -80,7 +80,7 @@ async def ingest_text(
     """
     current_rag_system = _get_rag_system()
     try:
-        await current_rag_system.ingest_string(
+        current_rag_system.ingest_string(
             text_content,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
@@ -132,7 +132,7 @@ async def reset_vector_store() -> str:
     """
     current_rag_system = _get_rag_system()
     try:
-        await current_rag_system.reset_vector_store()
+        current_rag_system.reset_vector_store()
         return "Vector store has been successfully reset."
     except Exception as e:
         logger.error(f"Error resetting vector store: {e}")
