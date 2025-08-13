@@ -5,7 +5,7 @@ from typing import Dict, List
 # Import the FastMCP client for testing
 
 # Import the module under test
-import rag_mcp.rag_mcp as rag_mcp_module
+import rag_mcp.rag_mcp as rag_mcp
 
 # Import the RAG class for direct verification
 from rag_mcp.rag import RAG
@@ -49,7 +49,7 @@ async def mcp_client():
     # The FastMCP client is used to call the registered tools.
     # Since rag_mcp_module already initializes its own global mcp instance,
     # we will use that one directly for testing its tools.
-    yield rag_mcp_module.mcp.client()
+    yield rag_mcp
 
 
 @pytest.fixture(autouse=True)
@@ -58,7 +58,7 @@ async def rag_system_fixture(temp_chroma_dir):
     Fixture to manage the global rag_system instance in rag_mcp.py for tests.
     It ensures each test gets a clean RAG instance pointing to a temporary DB.
     """
-    original_rag_system = rag_mcp_module.rag_system
+    original_rag_system = rag_mcp.rag_system
     original_db_path = os.environ.get("RAG_CHROMADB_PATH")
 
     # Set the environment variable for the RAG system to use the temporary path
@@ -66,12 +66,12 @@ async def rag_system_fixture(temp_chroma_dir):
 
     # Force re-initialization of the RAG system in the module
     # by setting it to None, so _get_rag_system() creates a new one
-    rag_mcp_module.rag_system = None
+    rag_mcp.rag_system = None
 
     yield
 
     # Clean up: Reset the global rag_system and environment variable
-    rag_mcp_module.rag_system = original_rag_system
+    rag_mcp.rag_system = original_rag_system
     if original_db_path is not None:
         os.environ["RAG_CHROMADB_PATH"] = original_db_path
     else:
@@ -86,14 +86,17 @@ async def test_ingest_file(mcp_client, temp_ingest_file, temp_chroma_dir):
     Test the ingest_file tool.
     """
     file_path_str = str(temp_ingest_file)
+    mcp_client.rag_system = RAG(chroma_persist_directory=str(temp_chroma_dir))
     response = await mcp_client.ingest_file(file_paths=[file_path_str])
 
+    print(response)
     assert "Ingested 1 file(s)." in response
     assert file_path_str in response
 
     # Verify ingestion by querying directly via RAG (not mocking)
     rag_instance = RAG(chroma_persist_directory=str(temp_chroma_dir))
     results = rag_instance.query("test document", num_results=1)
+    print(results)
     assert len(results) > 0
     assert "test document" in results[0].document.lower()
 
@@ -105,6 +108,7 @@ async def test_ingest_file_with_tags(mcp_client, temp_ingest_file, temp_chroma_d
     """
     file_path_str = str(temp_ingest_file)
     tags = ["report", "Q1"]
+    mcp_client.rag_system = RAG(chroma_persist_directory=str(temp_chroma_dir))
     response = await mcp_client.ingest_file(file_paths=[file_path_str], tags=tags)
 
     assert "Ingested 1 file(s)." in response
@@ -116,7 +120,7 @@ async def test_ingest_file_with_tags(mcp_client, temp_ingest_file, temp_chroma_d
     assert len(results) > 0
     assert "test document" in results[0].document.lower()
     assert "tags" in results[0].metadata
-    assert set(tags) == set(results[0].metadata["tags"])
+    assert set(tags) == set(results[0].metadata["tags"].split(","))
 
 
 @pytest.mark.asyncio
@@ -126,6 +130,7 @@ async def test_ingest_text(mcp_client, temp_chroma_dir):
     """
     test_text = "This is a direct text input for testing the ingest_text tool."
     source_name = "cli_test_input"
+    mcp_client.rag_system = RAG(chroma_persist_directory=str(temp_chroma_dir))
     response = await mcp_client.ingest_text(
         text_content=test_text, source_name=source_name
     )
@@ -146,6 +151,7 @@ async def test_query(mcp_client, temp_ingest_file, temp_chroma_dir):
     Test the query tool after ingesting a file.
     """
     # First, ingest a file
+    mcp_client.rag_system = RAG(chroma_persist_directory=str(temp_chroma_dir))
     await mcp_client.ingest_file(file_paths=[str(temp_ingest_file)])
 
     # Then, query
@@ -164,6 +170,7 @@ async def test_query_no_results(mcp_client):
     """
     Test the query tool when no results are found (empty vector store).
     """
+    mcp_client.rag_system = RAG(chroma_persist_directory=str(temp_chroma_dir))
     query_results: List[Dict] = await mcp_client.query(query_text="nonexistent query")
 
     assert isinstance(query_results, list)
@@ -176,6 +183,7 @@ async def test_reset_vector_store(mcp_client, temp_ingest_file, temp_chroma_dir)
     Test the reset_vector_store tool.
     """
     # Ingest a file first to ensure there's something to reset
+    mcp_client.rag_system = RAG(chroma_persist_directory=str(temp_chroma_dir))
     await mcp_client.ingest_file(file_paths=[str(temp_ingest_file)])
 
     # Verify content exists before reset
