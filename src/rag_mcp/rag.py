@@ -49,19 +49,14 @@ class QueryResult:
         """Format result for MCP response."""
         result = {
             "result_number": self.result_number,
-            "source": self.metadata.get("source", "N/A"),
-            "chunk_index": self.metadata.get("chunk_index", "N/A"),
-            "timestamp": self.metadata.get("timestamp", "N/A"),
-            "distance": f"{self.distance:.4f}",
             "document": self.document,
+            "distance": f"{self.distance:.4f}",
+            "metadata": self.metadata,  # Return the entire metadata dictionary
         }
 
-        if "tags" in self.metadata:
-            tags = self.metadata["tags"]
-            if isinstance(tags, str):
-                result["tags"] = tags.split(",")
-            else:
-                result["tags"] = tags
+        # Handle tags within the metadata dictionary if they exist and are a string
+        if "tags" in result["metadata"] and isinstance(result["metadata"]["tags"], str):
+            result["metadata"]["tags"] = result["metadata"]["tags"].split(",")
 
         return result
 
