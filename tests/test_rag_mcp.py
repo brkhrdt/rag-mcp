@@ -120,7 +120,7 @@ async def test_ingest_file_with_tags(mcp_client, temp_ingest_file, temp_chroma_d
     assert len(results) > 0
     assert "test document" in results[0].document.lower()
     assert "tags" in results[0].metadata
-    assert set(tags) == set(results[0].metadata["tags"].split(","))
+    assert set(tags) == set(results[0].tags)
 
 
 @pytest.mark.asyncio

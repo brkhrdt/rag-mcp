@@ -25,6 +25,10 @@ class QueryResult:
         self.metadata = metadata
         self.distance = distance
         self.result_number = result_number
+        if "tags" in metadata:
+            self.tags = metadata["tags"].split(",")
+        else:
+            self.tags = []
 
     def __str__(self) -> str:
         """Format result for CLI display."""
@@ -52,11 +56,8 @@ class QueryResult:
             "document": self.document,
             "distance": f"{self.distance:.4f}",
             "metadata": self.metadata,  # Return the entire metadata dictionary
+            "tags": self.tags,
         }
-
-        # Handle tags within the metadata dictionary if they exist and are a string
-        if "tags" in result["metadata"] and isinstance(result["metadata"]["tags"], str):
-            result["metadata"]["tags"] = result["metadata"]["tags"].split(",")
 
         return result
 
